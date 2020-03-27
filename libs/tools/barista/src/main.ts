@@ -31,6 +31,7 @@ import {
   internalLinksTransformerFactory,
 } from './transform';
 import { BaPageBuilder, BaPageBuildResult, BaPageTransformer } from './types';
+import { generateRoutes } from './generate-routes';
 
 // Add your page-builder to this map to register it.
 const BUILDERS = new Map<string, BaPageBuilder>([
@@ -84,7 +85,7 @@ async function createExampleInlineSourcesTransformer(): Promise<
 }
 
 /** Builds pages using all registered builders. */
-async function buildPages(): Promise<void[]> {
+async function buildPages(): Promise<number> {
   const globalTransformers = [
     await createExampleInlineSourcesTransformer(),
     createInternalLinksTransformer(),
@@ -104,52 +105,34 @@ async function buildPages(): Promise<void[]> {
   // Make sure dist dir is created
   mkdirSync(environment.distDir, { recursive: true });
 
-  const routes = results
-    .map(result => {
-      const path = result.relativeOutFile
-        .replace(/^\//, '') // replace the leading slash
-        .replace(/\..+$/, ''); // replace the file ending
-
-      if (path === 'index') {
-        return '/';
-      }
-
-      return `/${path}`;
-    })
-    .join(EOL);
+  const files = overviewBuilder(results);
 
   const routesFile = join(environment.distDir, 'routes.txt');
-  // write the routes to a own file that can be used for pre rendering
-  fs.writeFile(routesFile, routes, 'utf-8');
-  console.log(
-    green(
-      '\n✅ Successfully created routes.txt file for pre-rendering barista\n',
-    ),
-  );
 
-  const files = results.map(async result => {
-    const outFile = join(environment.distDir, result.relativeOutFile);
+  const writeFileStack: Promise<void>[] = [
+    fs.writeFile(routesFile, generateRoutes(files), 'utf-8'),
+  ];
 
-    // Creating folder path if it does not exist
+  // Write all files to the file system.
+  for (let i = 0, max = files.length; i < max; i++) {
+    const file = files[i];
+    const outFile = join(environment.distDir, file.relativeOutFile);
+    // Create directory if it does not exits
     mkdirSync(dirname(outFile), { recursive: true });
 
-    // Write file with page content to disc.
-    // tslint:disable-next-line: no-magic-numbers
-    return fs.writeFile(outFile, JSON.stringify(result.pageContent, null, 2), {
-      flag: 'w', // "w" -> Create file if it does not exist
-      encoding: 'utf8',
-    });
-  });
+    const content = JSON.stringify(file.pageContent, null, 2);
+    writeFileStack.push(
+      fs.writeFile(outFile, content, { flag: 'w', encoding: 'utf8' }),
+    );
+  }
 
-  const allPages = await Promise.all(files);
-  const overviewPages = await overviewBuilder();
-
-  return [...allPages, ...overviewPages];
+  await Promise.all(writeFileStack);
+  return files.length;
 }
 
 buildPages()
-  .then(async results => {
-    console.log(`${results.length} pages created.`);
+  .then(pages => {
+    console.log(`${pages} pages created.`);
   })
   .catch(err => {
     console.error(err);

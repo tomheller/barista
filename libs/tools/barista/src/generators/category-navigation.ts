@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { join, dirname } from 'path';
+import { join } from 'path';
 import {
   promises as fs,
   readFileSync,
@@ -32,7 +32,6 @@ import {
   BaPageLayoutType,
 } from '@dynatrace/shared/barista-definitions';
 import { environment } from '@environments/barista-environment';
-import { BaPageBuildResult } from '../types';
 
 // for now we manually select highlighted items, later this data can maybe be fetched from google analytics
 const highlightedItems = [
@@ -75,61 +74,56 @@ const overviewDescriptions = new Map<string, string>([
 
 /** add the sidenav to each page */
 function addSidenavToPages(
-  files: BaPageBuildResult[],
+  files: string[],
   sidenavContent: BaCategoryNavigation,
   path: string,
-): BaPageBuildResult[] {
-
-  const transformedPages: BaPageBuildResult[] = []
-
+): void {
   for (const file of files) {
-    const content = file.pageContent as any;
-    const filePath = file.relativeOutFile;
+    const filepath = join(path, file);
+    if (!lstatSync(filepath).isDirectory()) {
+      let currentSidenav = sidenavContent;
+      const content = JSON.parse(readFileSync(filepath).toString());
+      const fileTitle = content.title;
 
-    let currentSidenav = sidenavContent;
-    const fileTitle = content.title;
+      // highlight active item
+      for (const section of currentSidenav.sections) {
+        for (const item of section.items) {
+          if (item.title == fileTitle) {
+            item.active = true;
+          } else {
+            item.active = false;
+          }
+        }
+      }
 
-    // highlight active item
-    for (const section of currentSidenav.sections) {
-      for (const item of section.items) {
-        item.active = Boolean(item.title == fileTitle);
+      // add sidenav to the json file
+      content.sidenav = currentSidenav;
+      fs.writeFile(join(path, file), JSON.stringify(content, null, 2), {
+        flag: 'w', // "w" -> Create file if it does not exist
+        encoding: 'utf8',
+      });
+
+      // if there are subpages, add a sidenav to each of them
+      const pathToSubfolder = join(path, file.replace(/\.[^/.]+$/, ''));
+      if (
+        existsSync(pathToSubfolder) &&
+        lstatSync(pathToSubfolder).isDirectory()
+      ) {
+        const subPages = readdirSync(pathToSubfolder);
+        for (const subPage of subPages) {
+          const subPagePath = join(pathToSubfolder, subPage);
+          const subPageContent = JSON.parse(
+            readFileSync(subPagePath).toString(),
+          );
+          subPageContent.sidenav = currentSidenav;
+          fs.writeFile(subPagePath, JSON.stringify(subPageContent, null, 2), {
+            flag: 'w', // "w" -> Create file if it does not exist
+            encoding: 'utf8',
+          });
+        }
       }
     }
-
-    // add sidenav to the json file
-    content.sidenav = currentSidenav;
-    console.log(fileTitle, content.sidenav)
-
-    // transformedPages.push(file);
-
-
-    //   fs.writeFile(join(path, file), JSON.stringify(content, null, 2), {
-    //     flag: 'w', // "w" -> Create file if it does not exist
-    //     encoding: 'utf8',
-    //   });
-
-    //   // if there are subpages, add a sidenav to each of them
-    //   const pathToSubfolder = join(path, file.replace(/\.[^/.]+$/, ''));
-    //   if (
-    //     existsSync(pathToSubfolder) &&
-    //     lstatSync(pathToSubfolder).isDirectory()
-    //   ) {
-    //     const subPages = readdirSync(pathToSubfolder);
-    //     for (const subPage of subPages) {
-    //       const subPagePath = join(pathToSubfolder, subPage);
-    //       const subPageContent = JSON.parse(
-    //         readFileSync(subPagePath).toString(),
-    //       );
-    //       subPageContent.sidenav = currentSidenav;
-    //       fs.writeFile(subPagePath, JSON.stringify(subPageContent, null, 2), {
-    //         flag: 'w', // "w" -> Create file if it does not exist
-    //         encoding: 'utf8',
-    //       });
-    //     }
-    //   }
   }
-
-  return transformedPages
 }
 
 function orderSectionItems(
@@ -189,32 +183,29 @@ function getOverviewSectionItem(
   };
 }
 
-/**
- * Builds overview pages for sub directories like components.
- * @param files A list of all files
- */
-export function overviewBuilder(
-  generatedFiles: BaPageBuildResult[],
-): BaPageBuildResult[] {
-  const subDirectories = new Set(
-    generatedFiles
-      .map(({ relativeOutFile }) => dirname(relativeOutFile).split('/')[0])
-      .filter(name => name !== '.' && name.length), // filter the current directory out.
-  );
+/** Check if given path is a directory within environment.distDir. */
+function isDirectory(path: string): boolean {
+  try {
+    return lstatSync(join(environment.distDir, path)).isDirectory();
+  } catch {
+    return false;
+  }
+}
 
-  // Array of pages that should be written to the file system
-  const pages: BaPageBuildResult[] = [];
+/** Builds overview pages */
+export const overviewBuilder = async () => {
+  const allDirectories = readdirSync(environment.distDir).filter(dirPath =>
+    isDirectory(dirPath),
+  );
 
   let nav: BaNav = {
     navItems: [],
   };
 
-  subDirectories.forEach(directory => {
+  const pages = allDirectories.map(async directory => {
     const path = join(environment.distDir, directory);
     let overviewPage: BaCategoryNavigation;
-    const files = generatedFiles.filter(({ relativeOutFile }) =>
-      relativeOutFile.startsWith(directory),
-    );
+    const files = readdirSync(path);
 
     const capitalizedTitle =
       directory.charAt(0).toUpperCase() + directory.slice(1);
@@ -226,16 +217,26 @@ export function overviewBuilder(
     });
 
     if (directory !== 'components') {
-      const items = files.map(({ pageContent, relativeOutFile }) =>
-        getOverviewSectionItem(pageContent, capitalizedTitle, relativeOutFile),
-      );
-
       overviewPage = {
         title: capitalizedTitle,
         id: directory,
         layout: BaPageLayoutType.Overview,
-        sections: [{ items }],
+        sections: [
+          {
+            items: [],
+          },
+        ],
       };
+
+      for (const file of files) {
+        if (file.indexOf('.') > 0) {
+          const filepath = join(directory, file.replace(/\.[^/.]+$/, ''));
+          const content = JSON.parse(readFileSync(join(path, file)).toString());
+          overviewPage.sections[0].items.push(
+            getOverviewSectionItem(content, capitalizedTitle, filepath),
+          );
+        }
+      }
     } else {
       overviewPage = {
         title: 'Components',
@@ -257,8 +258,10 @@ export function overviewBuilder(
         ],
       };
 
-      for (const { relativeOutFile: filepath, pageContent: content } of files) {
+      for (const file of files) {
+        const content = JSON.parse(readFileSync(join(path, file)).toString());
         for (const section of overviewPage.sections) {
+          const filepath = join(directory, file.replace(/\.[^/.]+$/, ''));
           if (
             content.navGroup === 'docs' &&
             section.title === 'Documentation'
@@ -286,13 +289,18 @@ export function overviewBuilder(
 
     overviewPage = orderSectionItems(overviewPage!);
 
-    // TODO: This is ugly refactor it!
-    pages.push(...addSidenavToPages(files, overviewPage, path));
+    addSidenavToPages(files, overviewPage, path);
 
-    pages.push({
-      relativeOutFile: `${directory}.json`,
-      pageContent: overviewPage as any,
-    });
+    const overviewfilepath = join(environment.distDir, `${directory}.json`);
+    // Write file with page content to disc.
+    return fs.writeFile(
+      overviewfilepath,
+      JSON.stringify(overviewPage, null, 2),
+      {
+        flag: 'w', // "w" -> Create file if it does not exist
+        encoding: 'utf8',
+      },
+    );
   });
 
   nav.navItems.sort(function(a: BaNavItem, b: BaNavItem): number {
@@ -307,12 +315,14 @@ export function overviewBuilder(
     return -1;
   });
 
-  console.log(nav)
+  await fs.writeFile(
+    join(environment.distDir, 'nav.json'),
+    JSON.stringify(nav, null, 2),
+    {
+      flag: 'w', // "w" -> Create file if it does not exist
+      encoding: 'utf8',
+    },
+  );
 
-  pages.push({
-    relativeOutFile: 'nav.json',
-    pageContent: nav as any,
-  });
-
-  return pages;
-}
+  return Promise.all(pages);
+};

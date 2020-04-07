@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { basename, dirname } from 'path';
+import { basename, dirname, extname } from 'path';
 
 /**
  * The base class that is used for every file that will be generated or transformed.
@@ -28,11 +28,29 @@ export class BaFile<T = object | string> {
   directory: string;
   /** The file name of the page */
   fileName: string;
+  /** File type */
+  fileType: string;
 
   constructor(public filePath: string, public content: T) {
     const directory = dirname(filePath);
     this.fileName = basename(filePath);
     this.directory = directory.replace(/^[\.\/]/, ''); // replace starting dot or slash
     this.rootDir = this.directory.split('/')[0];
+    this.fileType = extname(filePath).substr(1);
+  }
+}
+
+export class BaJSONFile<T extends object> extends BaFile {
+  /** The parsed JSON content */
+  content: T;
+
+  constructor(filePath: string, content: string) {
+    super(filePath, content);
+
+    if (this.fileType !== 'json') {
+      throw Error('A JSON file has to end with .json');
+    }
+
+    this.content = JSON.parse(content);
   }
 }

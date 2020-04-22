@@ -19,7 +19,6 @@ import { dasherize } from '@angular-devkit/core/src/utils/strings';
 import { Rule, SchematicsException, Tree } from '@angular-devkit/schematics';
 import { join } from 'path';
 import * as ts from 'typescript';
-import { DtComponentOptions } from '../dt-component/schema';
 import { commitChanges, InsertChange } from './change';
 import { addNavItem } from './nav-items';
 
@@ -168,7 +167,7 @@ export function addImport(
 export function addDynatraceSubPackageImport(
   sourcePath: string,
   sourceFile: ts.SourceFile,
-  options: DtComponentOptions,
+  options: any,
 ): InsertChange {
   return addImport(
     sourcePath,

@@ -5,8 +5,8 @@
   "schematics": {
     "dt-component": {
       "description": "Create a component with a demo",
-      "factory": "./src/schematics/dt-component/index",
-      "schema": "./src/schematics/dt-component/schema.json",
+      "factory": "./src/schematics/dt-barista-component/index",
+      "schema": "./src/schematics/dt-barista-component/schema.json",
       "aliases": ["dtc"]
     }
   }

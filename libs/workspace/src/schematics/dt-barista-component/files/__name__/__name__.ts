@@ -14,5 +14,22 @@
  * limitations under the License.
  */
 
-export * from './builders/barista-build/builder';
-export * from './schematics/dt-barista-component';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewEncapsulation,
+} from '@angular/core';
+
+@Component({
+  selector: '<%= selector %>',
+  exportAs: 'dt<%= classify(name) %>',
+  templateUrl: '<%= dasherize(name) %>.html',
+  styleUrls: ['<%= dasherize(name) %>.scss'],
+  host: {
+    class: '<%= selector %>',
+  },
+  preserveWhitespaces: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.Emulated,
+})
+export class Dt<%= classify(name) %> {}

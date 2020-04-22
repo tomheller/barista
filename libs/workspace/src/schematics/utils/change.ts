@@ -15,7 +15,6 @@
  */
 
 import { Tree } from '@angular-devkit/schematics';
-import { isArray } from 'rxjs/internal-compatibility';
 
 export interface Host {
   write(path: string, content: string): Promise<void>;
@@ -82,7 +81,7 @@ export function commitChanges(
 ): Tree {
   const recorder = host.beginUpdate(path);
 
-  for (const change of isArray(changes) ? changes : [changes]) {
+  for (const change of Array.isArray(changes) ? changes : [changes]) {
     recorder.insertLeft(change.pos, change.toAdd);
   }
   host.commitUpdate(recorder);

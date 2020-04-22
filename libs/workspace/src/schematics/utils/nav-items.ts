@@ -17,7 +17,6 @@
 import { strings } from '@angular-devkit/core';
 import { Tree } from '@angular-devkit/schematics';
 import * as ts from 'typescript';
-import { DtComponentOptions } from '../dt-component/schema';
 import { findNodes, getIndentation, getSourceFile } from './ast-utils';
 import { commitChanges, InsertChange } from './change';
 
@@ -28,7 +27,7 @@ export interface DtDemoOptions {
 
 export function addNavItem(
   host: Tree,
-  options: DtComponentOptions | DtDemoOptions,
+  options: any | DtDemoOptions,
   modulePath: string,
 ): Tree {
   const sourceFile = getSourceFile(host, modulePath);

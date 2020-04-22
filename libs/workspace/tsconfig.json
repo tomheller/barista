@@ -4,5 +4,6 @@
     "types": ["node", "jest"],
     "downlevelIteration": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["src/schematics/*/files"]
 }

@@ -10,7 +10,7 @@ const entries = [
   'src/builders/stylelint/index.ts',
   'src/builders/design-tokens/build/index.ts',
   'src/builders/design-tokens/package/index',
-  'src/schematics/dt-component/index',
+  'src/schematics/dt-barista-component/index',
   'src/index.ts',
 ];
 

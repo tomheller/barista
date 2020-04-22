@@ -14,5 +14,9 @@
  * limitations under the License.
  */
 
-export * from './builders/barista-build/builder';
-export * from './schematics/dt-barista-component';
+export interface DtE2EComponentOptions {
+  name: string;
+  path: string;
+  moduleName: string;
+  selector: string;
+}

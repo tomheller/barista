@@ -59,6 +59,7 @@ export class BaIconOverviewContent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private _router: Router,
     private _activatedRoute: ActivatedRoute,
+    private _platform: Platform,
   ) {}
 
   ngOnInit(): void {
@@ -87,12 +88,31 @@ export class BaIconOverviewContent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((value: string) => {
         this._filteredIcons = filterIcons(this.icons, value);
         // remove or add the query param if we have a filter value
-        const queryParams = value.length ? { iconFilter: value } : {};
-
-        this._router.navigate([], {
-          queryParams,
-          relativeTo: this._activatedRoute,
-        });
+        if (this._platform.isBrowser) {
+          if (value.length) {
+            // we need to push the query change state without calling the angulars
+            // router navigate, because navigating would trigger the angular-routers
+            // scrollPositionRestoration, which will remove the focus from the current
+            // element and scroll back to top.
+            window.history.pushState(
+              {},
+              '',
+              `${window.location.origin}${window.location.pathname}?iconFilter=${value}`,
+            );
+          } else {
+            window.history.pushState(
+              {},
+              '',
+              `${window.location.origin}${window.location.pathname}`,
+            );
+          }
+        } else {
+          const queryParams = value.length ? { iconFilter: value } : {};
+          this._router.navigate([], {
+            queryParams,
+            relativeTo: this._activatedRoute,
+          });
+        }
       });
   }
 

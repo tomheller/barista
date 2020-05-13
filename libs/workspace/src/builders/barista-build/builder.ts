@@ -20,7 +20,7 @@ import {
   createBuilder,
 } from '@angular-devkit/architect';
 import { green } from 'chalk';
-import { existsSync, renameSync } from 'fs';
+import { existsSync, copyFileSync } from 'fs';
 import { join } from 'path';
 import { from, Observable, of } from 'rxjs';
 import { catchError, finalize, mapTo, switchMap, tap } from 'rxjs/operators';
@@ -52,8 +52,9 @@ export function runBuilder(
     tap(() => {
       // rename the original index file to avoid race conditions.
       const originalIndex = join(outputPath, 'index.html');
+      const targetIndex = join(outputPath, 'index.orginal.html');
       if (existsSync(originalIndex)) {
-        renameSync(originalIndex, join(outputPath, 'index.original.html'));
+        copyFileSync(originalIndex, targetIndex);
       }
     }),
     switchMap((serverModule) => startServer(serverModule, SERVER_PORT)),

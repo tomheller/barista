@@ -13,5 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './ng-add';
-export * from './utils';
+
+import { Tree } from '@angular-devkit/schematics';
+
+/**
+ * This method reads a file from a host tree
+ * @param host The host tree
+ * @param path The path to the file
+ */
+export function readFileFromTree(host: Tree, path: string): string {
+  if (!host.exists(path)) {
+    throw new Error(`Cannot find ${path}`);
+  }
+  return host.read(path)!.toString('utf-8');
+}

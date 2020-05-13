@@ -19,10 +19,14 @@ import { TestingArchitectHost } from '@angular-devkit/architect/testing';
 import { schema } from '@angular-devkit/core';
 import { join } from 'path';
 import { BaristaBuildBuilderSchema } from './schema';
+import { UnitTestTree } from '@angular-devkit/schematics/testing';
+import { createWorkspace } from './buildTestUtils/';
 
 // Mocked imports
 import * as childProcess from 'child_process';
 import * as utils from './utils';
+import { addFixtureToTree } from './buildTestUtils/';
+import { readFileFromTree } from './buildTestUtils/read-file-from-tree';
 
 const options: BaristaBuildBuilderSchema = {
   browserTarget: 'barista-design-system:build-frontend:production',
@@ -30,6 +34,8 @@ const options: BaristaBuildBuilderSchema = {
   outputPath: '',
   routes: ['test'],
 };
+
+let tree: UnitTestTree;
 
 describe('Barista Builder', () => {
   let architect: Architect;
@@ -96,5 +102,20 @@ describe('Barista Builder', () => {
         outputPath: expect.any(String),
       }),
     );
+  });
+
+  it('should create a copy of index.html named index.original', async () => {
+    tree = await createWorkspace();
+    await addFixtureToTree(tree, 'index-html.fixture', 'index.html');
+
+    const run = await architect.scheduleBuilder(
+      '@dynatrace/workspace:build-barista',
+      options,
+    );
+
+    const output = await run.result;
+    run.stop();
+    expect(output.success).toBe(true);
+    console.log(readFileFromTree(tree, 'index.html'));
   });
 });

@@ -13,5 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './ng-add';
-export * from './utils';
+
+export * from './run-schematic';
+export * from './fixture';
+export * from './workspace';
+export * from './get-matching-files-from-tree';

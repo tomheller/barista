@@ -35,6 +35,10 @@ import { BaPageContent } from './page-content';
 import { BaSinglePage } from './single-page';
 import { BaTocService } from '../../shared/services/toc.service';
 import { BaScrollSpyService } from '../../shared/services/scroll-spy.service';
+import {
+  BaTableOfContentsArea,
+  BaTableOfContentSection,
+} from '../../shared/scroll-spy/scroll-spy';
 
 export const routes: Route[] = [
   {
@@ -63,6 +67,8 @@ export const routes: Route[] = [
     BaContributors,
     BaLazyIcon,
     BaSidenav,
+    BaTableOfContentsArea,
+    BaTableOfContentSection,
     BaToc,
   ],
   providers: [BaRecentlyOrderedService, BaScrollSpyService, BaTocService],

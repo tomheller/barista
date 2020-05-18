@@ -4,42 +4,42 @@
     (click)="_expandTocMenu()"
     [ngClass]="{ 'ba-is-active': _expandToc }"
   >
-    <a
-      href="#"
+    <p
       class="ba-toc-header ba-expandable-trigger ba-expandable-trigger-right"
       data-initialized="true"
-      >On this page</a
     >
+      On this page
+    </p>
     <div class="ba-toc-content ba-expandable-content">
       <ul class="ba-toc-list ba-list">
         <li
-          *ngFor="let heading of _headings$ | async"
+          *ngFor="let headline of tocitems"
           class="ba-toc-item"
-          [class.ba-toc-item-active]="
-            _activeItems && _activeItems[0] === heading
-          "
+          [class.ba-toc-item-active]="_activeItems[0] === headline"
         >
           <a
             #headline
-            href="{{ heading.href }}"
+            id="{{ headline.id }}"
+            href="#{{ headline.id }}"
             class="ba-toc-link"
             (click)="_handleTocClick($event)"
-            >{{ heading.title }}</a
           >
-          <ul *ngIf="heading.hasSubheadlines" class="ba-toc-ul">
+            {{ headline.headline }}</a
+          >
+          <ul *ngIf="headline.children" class="ba-toc-ul">
             <li
-              *ngFor="let subheading of heading.subheadlines"
+              *ngFor="let subheadline of headline.children"
               class="ba-toc-item"
-              [class.ba-toc-item-active]="
-                _activeItems && _activeItems[1] === subheading
-              "
+              [class.ba-toc-item-active]="_activeItems[1] === subheadline"
             >
               <a
                 #headline
-                href="{{ subheading.href }}"
+                id="{{ subheadline.id }}"
+                href="#{{ subheadline.id }}"
                 class="ba-toc-link"
                 (click)="_handleTocClick($event)"
-                >{{ subheading.title }}</a
+              >
+                {{ subheadline.headline }}</a
               >
             </li>
           </ul>

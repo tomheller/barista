@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { BaPageLayoutType } from '@dynatrace/shared/barista-definitions';
+import {
+  BaPageLayoutType,
+  TableOfContents,
+} from '@dynatrace/shared/barista-definitions';
 
 import {
   componentTagsTransformer,
@@ -23,6 +26,8 @@ import {
   headingIdTransformer,
   internalContentTransformerFactory,
   relativeUrlTransformer,
+  tocGenerator,
+  sectionTransformer,
 } from './transform';
 
 describe('Barista transformers', () => {
@@ -232,6 +237,41 @@ describe('Barista transformers', () => {
         <a contentLink="../">Back</a>
       `,
       );
+    });
+  });
+
+  describe('TOC Generator', () => {
+    it('should generate toc', async () => {
+      const content = `<h2 id=\"hl1\">hl1</h2>\n<h2 id=\"hl2\">hl2</h2><h3 id=\"shl1\">shl1</h3>`;
+      const transformed = await tocGenerator({
+        title: 'toc',
+        toc: true,
+        layout: BaPageLayoutType.Default,
+        content,
+      });
+      const toc: TableOfContents[] = [
+        { headline: 'hl1', id: 'hl1' },
+        {
+          headline: 'hl2',
+          id: 'hl2',
+          children: [{ headline: 'shl1', id: 'shl1' }],
+        },
+      ];
+
+      expect(transformed.tocitems).toMatchObject(toc);
+    });
+  });
+
+  describe('Section Transformer', () => {
+    it('should wrap a section between headlines into an article tag', async () => {
+      const content = `<h2>headline1</h2><p>Content</p><span>Content</span><h3>headline 3</h3><p>Content3</p><h2>headline2</h2><p>Content2</p>`;
+      const transformed = await sectionTransformer({
+        title: 'section',
+        layout: BaPageLayoutType.Default,
+        content,
+      });
+      const result = `<h2>headline1</h2><article outersection id=\"headline1\"><p>Content</p><span>Content</span><h3>headline 3</h3><article innersection id=\"headline-3\"><p>Content3</p></article></article><h2>headline2</h2><article outersection id=\"headline2\"><p>Content2</p></article>`;
+      expect(transformed.content).toMatch(result);
     });
   });
 });

@@ -28,6 +28,7 @@ import {
 import { BaRecentlyOrderedService } from '../../shared/services/recently-ordered.service';
 import { applyTableDefinitionHeadingAttr } from '../../utils/apply-table-definition-headings';
 import { Platform } from '@angular/cdk/platform';
+// import { BaTableOfContentsArea } from '../../shared/scroll-spy/scroll-spy';
 
 @Component({
   selector: 'ba-single-page',
@@ -43,6 +44,12 @@ export class BaSinglePage implements OnInit, AfterViewInit {
 
   /** @internal Whether the page is the icon overview page */
   _isIconOverview = this._isIconOverviewPage();
+
+  // TODO
+  /*
+  Inject area component here which then contains a list of sections 
+  (created by calling create components function <- by creating the area component)
+  */
 
   constructor(
     private _router: Router,
@@ -73,6 +80,8 @@ export class BaSinglePage implements OnInit, AfterViewInit {
         applyTableDefinitionHeadingAttr(table);
       }
     }
+
+    // this._baTableOfContentsArea.createComponents();
   }
 
   /**

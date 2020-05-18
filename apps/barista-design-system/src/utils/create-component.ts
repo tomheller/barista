@@ -26,15 +26,15 @@ import {
  * Creates a new component instance at the position of a placeholder element.
  * Per default the placeholder element is then removed.
  */
-export function createComponent(
+export function createComponent<T>(
   factory: ComponentFactory<any>,
   viewContainerRef: ViewContainerRef,
   injector: Injector,
   placeholderElement: Element,
   projectableNodes: any[][] = [],
   shouldRemovePlaceholder: boolean = true,
-): ComponentRef<unknown> {
-  const componentRef = viewContainerRef.createComponent(
+): ComponentRef<T> {
+  const componentRef: ComponentRef<T> = viewContainerRef.createComponent(
     factory,
     viewContainerRef.length,
     injector,

@@ -17,6 +17,7 @@
 import {
   BaAllExamplesMetadata,
   BaSinglePageContent,
+  TableOfContents,
 } from '@dynatrace/shared/barista-definitions';
 import * as markdownIt from 'markdown-it';
 import * as markdownItDeflist from 'markdown-it-deflist';
@@ -233,6 +234,90 @@ export const relativeUrlTransformer: BaPageTransformer = async (source) => {
       });
     });
   }
+  return transformed;
+};
+
+export const sectionTransformer: BaPageTransformer = async (source) => {
+  const transformed = { ...source };
+
+  transformed.content = runWithCheerio(source.content, ($) => {
+    $('h2').each((_, element) => {
+      let id = $(element).attr('id');
+      if (!id) {
+        id = $(element).text().replace(' ', '-');
+      }
+      const currentArticle = $(`<article outerSection id="${id}"></article>`);
+      $(element)
+        .nextUntil('h2')
+        .each((_i, betweenElement) => {
+          currentArticle.append($(betweenElement));
+        });
+      currentArticle.insertAfter($(element));
+    });
+    $('article[outerSection]').each((_, outerSections) => {
+      $(outerSections)
+        .find('h3')
+        .each((__, element) => {
+          let id = $(element).attr('id');
+          if (!id) {
+            id = $(element).text().replace(' ', '-');
+          }
+          const currentSubArticle = $(
+            `<article innerSection id="${id}"></article>`,
+          );
+          $(element)
+            .nextUntil('h3')
+            .each((___, betweenElement) => {
+              currentSubArticle.append($(betweenElement));
+            });
+          currentSubArticle.insertAfter($(element));
+        });
+    });
+  });
+
+  return transformed;
+};
+
+export const tocGenerator: BaPageTransformer = async (source) => {
+  const transformed = { ...source };
+  let toc: TableOfContents[] = [];
+  if (source.toc) {
+    // generate TOC and at to source
+    // Find Headlines and corresponding subheadlines (h2 > h3)
+    transformed.content = runWithCheerio(source.content, ($) => {
+      const headlines = $('h2, h3');
+      let currentH2 = -1;
+      headlines.each((_index, headline) => {
+        const headlineId = $(headline).attr('id');
+        $(headline.attribs).append(
+          $(headline)
+            .removeAttr('id')
+            .attr('baTableOfContentSection', headlineId!),
+        );
+        const headlineText = $(headline).text();
+        if (headline.tagName === 'h2') {
+          currentH2++;
+          toc.push({
+            id: headlineId!,
+            headline: headlineText!,
+          });
+        } else if (headline.tagName === 'h3') {
+          // Add subheadlines array when needed
+          if (!toc[currentH2].children) {
+            toc[currentH2] = {
+              ...toc[currentH2],
+              children: [],
+            };
+          }
+          toc[currentH2].children!.push({
+            id: headlineId!,
+            headline: headlineText!,
+          });
+        }
+      });
+    });
+  }
+  transformed.tocitems = toc;
   return transformed;
 };
 

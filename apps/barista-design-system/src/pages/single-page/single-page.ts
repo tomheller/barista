@@ -15,7 +15,13 @@
  */
 
 import { DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Inject,
+  OnInit,
+  ElementRef,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import {
   BaPageLayoutType,
@@ -28,6 +34,34 @@ import {
 import { BaRecentlyOrderedService } from '../../shared/services/recently-ordered.service';
 import { applyTableDefinitionHeadingAttr } from '../../utils/apply-table-definition-headings';
 import { Platform } from '@angular/cdk/platform';
+import { BaScrollSpyService } from '../../shared/services/scroll-spy.service';
+
+let headlines: Element[] = [];
+
+/**
+ * The BaTableOfContentMainSection and SubSection components are created upon visit of a component with headlines like <h2 contentSection...
+ */
+@Component({
+  selector: 'h2[contentsection]',
+  template: '<ng-content></ng-content>',
+})
+export class BaTableOfContentMainSection {
+  sectionElement: Element = this._elementRef.nativeElement;
+  constructor(private _elementRef: ElementRef) {
+    headlines.push(_elementRef.nativeElement);
+  }
+}
+
+@Component({
+  selector: 'h3[contentsection]',
+  template: '<ng-content></ng-content>',
+})
+export class BaTableOfContentSubSection {
+  sectionElement: Element = this._elementRef.nativeElement;
+  constructor(private _elementRef: ElementRef) {
+    headlines.push(_elementRef.nativeElement);
+  }
+}
 
 @Component({
   selector: 'ba-single-page',
@@ -49,6 +83,7 @@ export class BaSinglePage implements OnInit, AfterViewInit {
     private _pageService: BaPageService<BaSinglePageContent>,
     private _recentlyOrderedService: BaRecentlyOrderedService,
     private _platform: Platform,
+    private _scrollSpyService: BaScrollSpyService,
     @Inject(DOCUMENT) private _document: any,
   ) {}
 
@@ -67,12 +102,12 @@ export class BaSinglePage implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     if (this._platform.isBrowser) {
       const allTables = [].slice.call(this._document.querySelectorAll('table'));
-
       /** Add data attributes to all tables, to apply responsive behavior of the tables. */
       for (const table of allTables) {
         applyTableDefinitionHeadingAttr(table);
       }
     }
+    this._scrollSpyService.spyOn(headlines);
   }
 
   /**

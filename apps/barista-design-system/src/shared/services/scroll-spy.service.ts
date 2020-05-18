@@ -14,212 +14,120 @@
  * limitations under the License.
  */
 
-import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
-import { Observable, ReplaySubject, Subject, fromEvent } from 'rxjs';
-import { auditTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Injectable, NgZone, Inject } from '@angular/core';
+import { BehaviorSubject, Observable, fromEvent } from 'rxjs';
+import { distinctUntilChanged, auditTime } from 'rxjs/operators';
 import { Platform } from '@angular/cdk/platform';
+import { compareValues } from '@dynatrace/barista-components/core';
+import { DOCUMENT } from '@angular/common';
+
+/** Contains boundingclientrect top property and element. Used for check which item is active */
+interface HeadlineElement {
+  top: number;
+  element: Element;
+}
 
 /**
- * CODE COPIED FROM: 'https://github.com/angular/angular/blob/master/aio/src/app/shared/scroll-spy.service.ts' and modified
+ * The Scroll spy service should get the elements from outside, then check wich element is
+ * currently active and should be highlighted.
+ * Save that item into a stream and the toc component then subscribes to it.
+ * The TOC component then handles the check which item to highlight
  */
-
-export interface BaScrollItem {
-  element: Element;
-  index: number;
-}
-
-export interface BaScrollSpyInfo {
-  active: Observable<BaScrollItem | null>;
-  unspy(): void;
-}
-
-/*
- * Represents a "scroll-spied" element. Contains info and methods for determining whether this
- * element is the active one (i.e. whether it has been scrolled passed), based on the window's
- * scroll position.
- */
-export class BaScrollSpiedElement implements BaScrollItem {
-  top = 0;
-
-  constructor(readonly element: Element, readonly index: number) {}
-
-  /*
-   * Calculate the `top` value, i.e. the value of the `scrollTop` property at which this element
-   * becomes active. The current implementation assumes that window is the scroll-container.
-   */
-  calculateTop(scrollTop: number, topOffset: number): void {
-    this.top = scrollTop + this.element.getBoundingClientRect().top - topOffset;
-  }
-}
-
-/*
- * Represents a group of "scroll-spied" elements. Contains info and methods for efficiently
- * determining which element should be considered "active", i.e. which element has been scrolled
- * passed the top of the viewport.
- */
-export class BaScrollSpiedElementGroup {
-  activeScrollItem: ReplaySubject<BaScrollItem | null> = new ReplaySubject(1);
-  private _spiedElements: BaScrollSpiedElement[];
-
-  constructor(elements: Element[]) {
-    this._spiedElements = elements.map(
-      (elem, i) => new BaScrollSpiedElement(elem, i),
-    );
-  }
-
-  /*
-   * Calculate the `top` value of each ScrollSpiedElement of this group (based on te current
-   * `scrollTop` and `topOffset` values), so that the active element can be later determined just by
-   * comparing its `top` property with the then current `scrollTop`.
-   */
-  calibrate(scrollTop: number, topOffset: number): void {
-    for (const spiedElem of this._spiedElements) {
-      spiedElem.calculateTop(scrollTop, topOffset);
-    }
-    this._spiedElements.sort((a, b) => b.top - a.top); // Sort in descending `top` order.
-  }
-
-  /*
-   * Determine which element is the currently active one, i.e. the lower-most element that is
-   * scrolled passed the top of the viewport (taking offsets into account) and emit it on
-   * `activeScrollItem`.
-   * If no element can be considered active, `null` is emitted instead.
-   * If window is scrolled all the way to the bottom, then the lower-most element is considered
-   * active even if it not scrolled passed the top of the viewport.
-   */
-  onScroll(scrollTop: number, maxScrollTop: number): void {
-    let activeItem: BaScrollItem | undefined;
-    if (scrollTop + 1 >= maxScrollTop) {
-      activeItem = this._spiedElements[0];
-    } else {
-      activeItem = this._spiedElements.find((spiedElem) => {
-        if (spiedElem.top <= scrollTop) {
-          return true;
-        }
-        return false;
-      });
-    }
-
-    this.activeScrollItem.next(activeItem || null);
-  }
-}
-
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class BaScrollSpyService {
-  private _spiedElementGroups: BaScrollSpiedElementGroup[] = [];
-  private _onStopListening = new Subject<void>();
-  private _lastContentHeight: number;
-  private _lastMaxScrollTop: number;
-  private _topOffset = 66;
+  /** Top Offset */
+  OFFSET = 66;
 
-  // tslint:disable-next-line: no-any
+  /** Top value and elements for every headline in the page content */
+  headlineElements: HeadlineElement[] = [];
+
+  /** Id of currently active item */
+  activeItemId$ = new BehaviorSubject<string>('');
+
   constructor(
     private _platform: Platform,
+    private _zone: NgZone,
     @Inject(DOCUMENT) private _document: any,
   ) {}
 
-  /*
-   * Start tracking a group of elements and emitting active elements; i.e. elements that are
-   * currently visible in the viewport. If there was no other group being spied, start listening for
-   * `resize` and `scroll` events.
-   */
-  spyOn(elements: Element[]): BaScrollSpyInfo | null {
-    if (this._platform.isBrowser && !this._spiedElementGroups.length) {
-      fromEvent(window, 'resize')
-        .pipe(auditTime(300), takeUntil(this._onStopListening))
-        .subscribe(() => {
-          this._onResize();
-        });
-      fromEvent(window, 'scroll')
-        .pipe(auditTime(10), takeUntil(this._onStopListening))
-        .subscribe(() => {
-          this._onScroll();
-        });
-      this._onResize();
+  /** Start spying on an element array of headlines returning a stream with the active item */
+  spyOn(elements: Element[]): Observable<string> {
+    // Initially calculate boundclientrect top values for every headline.
+    this.calcTopValues(elements);
+    // Resize and Scroll trigger event calculates top values and active item.
+    fromEvent(window, 'resize')
+      .pipe(auditTime(300))
+      .subscribe(() => {
+        this.calculateActiveItem(elements);
+      });
+    fromEvent(window, 'scroll')
+      .pipe(auditTime(10))
+      .subscribe(() => {
+        this.calculateActiveItem(elements);
+      });
+    return this.activeItemId$.asObservable().pipe(distinctUntilChanged());
+  }
 
-      const scrollTop = this._getScrollTop();
-      const maxScrollTop = this._lastMaxScrollTop;
+  /** Calculates top values and finds the active item putting it into a stream */
+  calculateActiveItem(elements: Element[]): void {
+    this.calcTopValues(elements);
+    this.activeItemId$.next(this.findActiveItem());
+  }
 
-      const spiedGroup = new BaScrollSpiedElementGroup(elements);
-      spiedGroup.calibrate(scrollTop, this._topOffset);
-      spiedGroup.onScroll(scrollTop, maxScrollTop);
-
-      this._spiedElementGroups.push(spiedGroup);
-
-      return {
-        active: spiedGroup.activeScrollItem
-          .asObservable()
-          .pipe(distinctUntilChanged()),
-        unspy: () => {
-          this._unspy(spiedGroup);
-        },
+  /** Calculates top bounding properties for an element array */
+  calcTopValues(elements: Element[]): void {
+    this.headlineElements = [];
+    elements.forEach((element) => {
+      const headlineElement: HeadlineElement = {
+        top:
+          this._getScrollTop() +
+          element.getBoundingClientRect().top -
+          this.OFFSET,
+        element: element,
       };
-    }
-
-    return null;
+      this.headlineElements.push(headlineElement);
+    });
+    this.headlineElements.sort((a, b) => compareValues(a.top, b.top, 'asc'));
   }
 
-  private _getContentHeight(): number {
-    return this._document.body.scrollHeight || Number.MAX_SAFE_INTEGER;
+  /**
+   * Evaluates by comparing the users scroll position with element top property and return the id of an element
+   * that should be highlighted
+   */
+  findActiveItem(): string {
+    // The element id of the item to be hghlighted
+    let activeItem: string | null = null;
+    this._zone.runOutsideAngular(() => {
+      const scrollTop = this._getScrollTop();
+      const contentHeight = this._getContentHeight();
+      const viewportHeight = this._getViewportHeight();
+      for (let i = 0; i < this.headlineElements.length; i++) {
+        // Check whether an elements top value is smaller then the users scroll top position and offset
+        // resulting in setting that value as `active`
+        if (this.headlineElements[i].top <= scrollTop + this.OFFSET) {
+          activeItem = this.headlineElements[i].element.id;
+        } else if (scrollTop + viewportHeight >= contentHeight) {
+          // Special case when user is at the bottom of the page and there's no way tthe last item will be active
+          activeItem = this.headlineElements[this.headlineElements.length - 1]
+            .element.id;
+        }
+      }
+    });
+    return activeItem!;
   }
 
+  /** Current position of user in Browser */
   private _getScrollTop(): number {
     return (this._platform.isBrowser && window.pageYOffset) || 0;
   }
 
+  /** Height of the whole content */
+  private _getContentHeight(): number {
+    return this._document.body.scrollHeight || Number.MAX_SAFE_INTEGER;
+  }
+
+  /** Height of the viewport */
   private _getViewportHeight(): number {
     return (this._platform.isBrowser && window.innerHeight) || 0;
-  }
-
-  /*
-   * The size of the window has changed. Re-calculate all affected values,
-   * so that active elements can be determined efficiently on scroll.
-   */
-  private _onResize(): void {
-    const contentHeight = this._getContentHeight();
-    const viewportHeight = this._getViewportHeight();
-    const scrollTop = this._getScrollTop();
-
-    this._lastContentHeight = contentHeight;
-    this._lastMaxScrollTop = contentHeight - viewportHeight;
-
-    for (const group of this._spiedElementGroups) {
-      group.calibrate(scrollTop, this._topOffset);
-    }
-  }
-
-  /*
-   * Determine which element for each ScrollSpiedElementGroup is active. If the content height has
-   * changed since last check, re-calculate all affected values first.
-   */
-  private _onScroll(): void {
-    if (this._lastContentHeight !== this._getContentHeight()) {
-      // Something has caused the scroll height to change.
-      // (E.g. image downloaded, accordion expanded/collapsed etc.)
-      this._onResize();
-    }
-
-    const scrollTop = this._getScrollTop();
-    const maxScrollTop = this._lastMaxScrollTop;
-
-    for (const group of this._spiedElementGroups) {
-      group.onScroll(scrollTop, maxScrollTop);
-    }
-  }
-
-  /*
-   * Stop tracking this group of elements and emitting active elements. If there is no other group
-   * being spied, stop listening for `resize` or `scroll` events.
-   */
-  private _unspy(spiedGroup: BaScrollSpiedElementGroup): void {
-    spiedGroup.activeScrollItem.complete();
-    this._spiedElementGroups = this._spiedElementGroups.filter(
-      (group) => group !== spiedGroup,
-    );
-
-    if (!this._spiedElementGroups.length) {
-      this._onStopListening.next();
-    }
   }
 }

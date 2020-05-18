@@ -17,6 +17,7 @@
 import {
   BaAllExamplesMetadata,
   BaSinglePageContent,
+  TableOfContents,
 } from '@dynatrace/shared/barista-definitions';
 import * as markdownIt from 'markdown-it';
 import * as markdownItDeflist from 'markdown-it-deflist';
@@ -233,6 +234,100 @@ export const relativeUrlTransformer: BaPageTransformer = async (source) => {
       });
     });
   }
+  return transformed;
+};
+
+export const sectionTransformer: BaPageTransformer = async (source) => {
+  const transformed = { ...source };
+
+  transformed.content = runWithCheerio(source.content, ($) => {
+    $('h2, h3').each((_, element) => {
+      let sectionId = $(element).attr('id');
+      if (!sectionId) {
+        sectionId = $(element).text().replace(' ', '-');
+      }
+      // console.log(sectionId);
+      $(element.attribs).append(
+        $(element).attr('contentSection', ''),
+        $(element).attr('id', sectionId),
+      );
+    });
+    // $('h2').each((_, element) => {
+    //   let sectionId = $(element).attr('id');
+    //   if (!sectionId) {
+    //     sectionId = $(element).text().replace(' ', '-');
+    //   }
+    //   // TODO: No multiple ids
+    //   const currentArticle = $(
+    //     `<article contentSection level="0" data-id="${sectionId}"></article>`,
+    //   );
+    //   $(element)
+    //     .nextUntil('h2')
+    //     .each((_i, betweenElement) => {
+    //       currentArticle.append($(betweenElement));
+    //     });
+    //   currentArticle.insertAfter($(element));
+    // });
+    // $('article[contentSection]').each((_, outerSection) => {
+    //   $(outerSection)
+    //     .find('h3')
+    //     .each((_i, element) => {
+    //       let id = $(element).attr('id');
+    //       if (!id) {
+    //         id = $(element).text().replace(' ', '-');
+    //       }
+    //       const currentSubArticle = $(
+    //         `<article contentSection level="1" data-id="${id}"></article>`,
+    //       );
+    //       $(element)
+    //         .nextUntil('h3')
+    //         .each((__i, betweenElement) => {
+    //           currentSubArticle.append($(betweenElement));
+    //         });
+    //       currentSubArticle.insertAfter($(element));
+    //     });
+    // });
+  });
+
+  return transformed;
+};
+
+export const tocGenerator: BaPageTransformer = async (source) => {
+  const transformed = { ...source };
+  let toc: TableOfContents[] = [];
+  if (source.toc) {
+    // generate TOC and at to source
+    // Find Headlines and corresponding subheadlines (h2 > h3)
+    transformed.content = runWithCheerio(source.content, ($) => {
+      const headlines = $('h2, h3');
+      let currentH2 = -1;
+      // TODO: Id is lost somewhere? --------------!
+      headlines.each((_index, headline) => {
+        const headlineId = $(headline).attr('id');
+        const headlineText = $(headline).text();
+        if (headline.tagName === 'h2') {
+          currentH2++;
+          toc.push({
+            id: headlineId!,
+            headline: headlineText!,
+          });
+        } else if (headline.tagName === 'h3') {
+          // Add subheadlines array when needed
+          if (!toc[currentH2].children) {
+            toc[currentH2] = {
+              ...toc[currentH2],
+              children: [],
+            };
+          }
+          toc[currentH2].children!.push({
+            id: headlineId!,
+            headline: headlineText!,
+          });
+        }
+      });
+    });
+  }
+  transformed.tocitems = toc;
   return transformed;
 };
 

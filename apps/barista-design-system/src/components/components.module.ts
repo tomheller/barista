@@ -31,6 +31,10 @@ import { BaIconColorWheel } from './icon-color-wheel/icon-color-wheel';
 import { BaLayoutGrid } from './layout-grid/layout-grid';
 import { BaLayoutGridItem } from './layout-grid/layout-grid-item';
 import { BaLiveExample } from './live-example/live-example';
+import {
+  BaTableOfContentMainSection,
+  BaTableOfContentSubSection,
+} from '../pages/single-page/single-page';
 
 /**
  * The order of the following components is relevant in case they are nested.
@@ -38,14 +42,16 @@ import { BaLiveExample } from './live-example/live-example';
  * comes before the grid and the grid before the color-grid.
  */
 export const BA_CONTENT_COMPONENTS: any[] = [
-  BaIconColorWheel,
-  BaLiveExample,
-  BaHeadlineLink,
   BaColor,
+  BaColorGrid,
   BaContentLink,
+  BaIconColorWheel,
+  BaHeadlineLink,
   BaLayoutGridItem,
   BaLayoutGrid,
-  BaColorGrid,
+  BaLiveExample,
+  BaTableOfContentMainSection,
+  BaTableOfContentSubSection,
 ];
 
 @NgModule({

@@ -18,18 +18,15 @@ import {
   Component,
   ViewChildren,
   OnInit,
-  AfterViewInit,
-  OnDestroy,
-  NgZone,
   Inject,
+  Input,
+  QueryList,
+  NgZone,
 } from '@angular/core';
-import {
-  BaTocService,
-  BaTocItem,
-} from '../../../../shared/services/toc.service';
-import { Subscription } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { DOCUMENT } from '@angular/common';
+import { TableOfContents } from '@dynatrace/shared/barista-definitions';
+import { BaScrollSpyService } from 'apps/barista-design-system/src/shared/services/scroll-spy.service';
 
 @Component({
   selector: 'ba-toc',
@@ -39,46 +36,51 @@ import { DOCUMENT } from '@angular/common';
     class: 'ba-toc',
   },
 })
-export class BaToc implements OnInit, AfterViewInit, OnDestroy {
+export class BaToc implements OnInit {
+  @Input()
+  tocItems: TableOfContents[];
+
   /** @internal all TOC entries */
-  @ViewChildren('headline') _headlines;
+  @ViewChildren('headline') _headlines: QueryList<HTMLElement>;
 
   /** @internal whether the TOC is expanded  */
   _expandToc: boolean;
-  /** @internal all headlines, which should be represented in the TOC  */
-  _headings$ = this._tocService.tocList;
-  /** @internal the TOC entries that are currently active */
-  _activeItems: BaTocItem[] = [];
 
-  /** Subscription on active TOC items */
-  private _activeItemsSubscription = Subscription.EMPTY;
+  /** @internal the TOC entries that are currently active */
+  _activeItems: TableOfContents[] = [];
 
   constructor(
-    private _tocService: BaTocService,
-    private _zone: NgZone,
+    private _scrollSpyService: BaScrollSpyService,
     private _platform: Platform,
+    private _zone: NgZone,
     @Inject(DOCUMENT) private _document: any,
   ) {}
 
   ngOnInit(): void {
-    this._activeItemsSubscription = this._tocService.activeItems.subscribe(
-      (activeItems) => {
-        this._zone.run(() => {
-          this._activeItems = activeItems;
+    this.subscribeToActiveItems();
+  }
+
+  /** Subscribes to the activeItemId$ stream from the scroll spy and sets the active item */
+  subscribeToActiveItems(): void {
+    this._zone.runOutsideAngular(() => {
+      this._scrollSpyService.activeItemId$
+        .asObservable()
+        .subscribe((activeItemId) => {
+          this._activeItems = [];
+          for (const tocItem of this.tocItems) {
+            if (tocItem.id === activeItemId) {
+              this._activeItems.push(tocItem);
+            }
+            if (tocItem.children) {
+              for (const tocSubItem of tocItem.children) {
+                if (tocSubItem.id === activeItemId) {
+                  this._activeItems.push(tocItem, tocSubItem);
+                }
+              }
+            }
+          }
         });
-      },
-    );
-  }
-
-  ngAfterViewInit(): void {
-    Promise.resolve().then(() => {
-      const docElement = this._document.getElementById('main') || undefined;
-      this._tocService.genToc(docElement);
     });
-  }
-
-  ngOnDestroy(): void {
-    this._activeItemsSubscription.unsubscribe();
   }
 
   /** @internal toggle the expandable menu */
@@ -93,12 +95,15 @@ export class BaToc implements OnInit, AfterViewInit, OnDestroy {
      * and not to the current page. */
     ev.preventDefault();
     ev.stopImmediatePropagation();
-    const targetId = (ev.currentTarget as HTMLElement).getAttribute('href');
-    const target = this._document.querySelector(targetId || '');
+    const targetId = (ev.currentTarget as HTMLAnchorElement).hash;
+    const target = this._document.querySelector(targetId);
 
     if (this._platform.isBrowser && target) {
       // Has to be set manually because of preventDefault() above.
-      window.location.hash = targetId || '';
+      const newLocation =
+        window.location.origin + window.location.pathname + targetId;
+      window.history.replaceState('', '', newLocation);
+
       requestAnimationFrame(() => {
         target.scrollIntoView({
           behavior: 'smooth',

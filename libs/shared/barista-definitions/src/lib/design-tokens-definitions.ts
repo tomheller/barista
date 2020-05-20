@@ -34,6 +34,8 @@ export interface FluidPaletteSourceAlias {
   shades: FluidPaletteSourceShade[];
   /** Function easing options */
   generationOptions: FluidPaletteGenerationOptions;
+  /** The theme this palette belongs to */
+  theme: string;
 }
 
 /** Definition for a shade of color */

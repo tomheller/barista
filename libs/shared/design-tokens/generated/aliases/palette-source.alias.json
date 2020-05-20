@@ -1,7 +1,8 @@
 {
   "aliases": [
     {
-      "name": "primary-abyss",
+      "name": "primary",
+      "theme": "abyss",
       "keyColor": "#3481F4",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -52,7 +53,8 @@
       ]
     },
     {
-      "name": "positive-abyss",
+      "name": "positive",
+      "theme": "abyss",
       "keyColor": "#36C687",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -103,7 +105,8 @@
       ]
     },
     {
-      "name": "warning-abyss",
+      "name": "warning",
+      "theme": "abyss",
       "keyColor": "#FDC300",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -154,7 +157,8 @@
       ]
     },
     {
-      "name": "error-abyss",
+      "name": "error",
+      "theme": "abyss",
       "keyColor": "#F43D5A",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -205,7 +209,8 @@
       ]
     },
     {
-      "name": "nasty-orange-abyss",
+      "name": "nasty-orange",
+      "theme": "abyss",
       "keyColor": "#FD8C30",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -256,7 +261,8 @@
       ]
     },
     {
-      "name": "hot-pink-abyss",
+      "name": "hot-pink",
+      "theme": "abyss",
       "keyColor": "#E13093",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -307,7 +313,8 @@
       ]
     },
     {
-      "name": "soylent-green-abyss",
+      "name": "soylent-green",
+      "theme": "abyss",
       "keyColor": "#3CB5B5",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -358,7 +365,8 @@
       ]
     },
     {
-      "name": "naughty-purple-abyss",
+      "name": "naughty-purple",
+      "theme": "abyss",
       "keyColor": "#AE80C9",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -409,7 +417,8 @@
       ]
     },
     {
-      "name": "neutral-abyss",
+      "name": "neutral",
+      "theme": "abyss",
       "keyColor": "#757C91",
       "baseColor": "#111216",
       "type": "adobe-leonardo",
@@ -484,7 +493,8 @@
       ]
     },
     {
-      "name": "primary-surface",
+      "name": "primary",
+      "theme": "surface",
       "keyColor": "#0B55C4",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -535,7 +545,8 @@
       ]
     },
     {
-      "name": "positive-surface",
+      "name": "positive",
+      "theme": "surface",
       "keyColor": "#207550",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -586,7 +597,8 @@
       ]
     },
     {
-      "name": "warning-surface",
+      "name": "warning",
+      "theme": "surface",
       "keyColor": "#906E00",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -637,7 +649,8 @@
       ]
     },
     {
-      "name": "error-surface",
+      "name": "error",
+      "theme": "surface",
       "keyColor": "#C20B29",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -688,7 +701,8 @@
       ]
     },
     {
-      "name": "nasty-orange-surface",
+      "name": "nasty-orange",
+      "theme": "surface",
       "keyColor": "#BE5602",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -739,7 +753,8 @@
       ]
     },
     {
-      "name": "hot-pink-surface",
+      "name": "hot-pink",
+      "theme": "surface",
       "keyColor": "#CC1D7F",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -790,7 +805,8 @@
       ]
     },
     {
-      "name": "soylent-green-surface",
+      "name": "soylent-green",
+      "theme": "surface",
       "keyColor": "#287878",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -841,7 +857,8 @@
       ]
     },
     {
-      "name": "naughty-purple-surface",
+      "name": "naughty-purple",
+      "theme": "surface",
       "keyColor": "#9151B5",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",
@@ -892,7 +909,8 @@
       ]
     },
     {
-      "name": "neutral-surface",
+      "name": "neutral",
+      "theme": "surface",
       "keyColor": "#6C7387",
       "baseColor": "#FAFBFB",
       "type": "adobe-leonardo",

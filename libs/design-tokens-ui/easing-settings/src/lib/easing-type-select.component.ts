@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { FluidEasingType } from '@dynatrace/shared/barista-definitions';
 
-const routes: Routes = [
-  {
-    path: 'theme',
-    loadChildren: () =>
-      import('../pages/palettes/palettes.module').then(
-        (module) => module.PalettesModule,
-      ),
-  },
-];
-
-@NgModule({
-  exports: [RouterModule],
-  imports: [RouterModule.forRoot(routes)],
+@Component({
+  selector: 'design-tokens-ui-easing-type-select',
+  templateUrl: './easing-type-select.component.html',
+  styleUrls: ['./easing-type-select.component.scss'],
 })
-export class AppRoutingModule {}
+export class DesignTokensUiEasingTypeSelectComponent {
+  @Input() type: FluidEasingType = 'ease-in';
+  @Input() exponent: number = 2;
+
+  @Output() typeChange = new EventEmitter<FluidEasingType>();
+  @Output() exponentChange = new EventEmitter<number>();
+}

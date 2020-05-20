@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FluidPaletteSourceAlias } from '@dynatrace/shared/barista-definitions';
-import { generatePaletteContrastColors } from '../../../../utils/colors';
 
 @Component({
-  selector: 'design-tokens-ui-palette-tile',
-  templateUrl: './palette-tile.component.html',
-  styleUrls: ['./palette-tile.component.scss'],
+  selector: 'design-tokens-ui-theme-tile',
+  templateUrl: './theme-tile.component.html',
+  styleUrls: ['./theme-tile.component.scss'],
+  host: {
+    '[class]': '"fluid-theme--" + name',
+  },
 })
-export class PaletteTileComponent implements OnInit {
-  /** Palette that should be displayed */
-  @Input() paletteSource: FluidPaletteSourceAlias;
+export class ThemeTileComponent {
+  /** Theme name */
+  @Input() name: string;
 
-  /** @internal */
-  _contrastColors: string[];
-
-  /** @internal */
-  _textColor: string;
-
-  ngOnInit(): void {
-    this._contrastColors = generatePaletteContrastColors(this.paletteSource);
-  }
+  /** Palettes in the theme */
+  @Input() palettes: FluidPaletteSourceAlias[];
 }

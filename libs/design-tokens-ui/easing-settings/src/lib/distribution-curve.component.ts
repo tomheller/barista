@@ -29,22 +29,20 @@ import {
 import { Subject, fromEvent, merge } from 'rxjs';
 import { takeUntil, startWith, debounceTime, mapTo } from 'rxjs/operators';
 import {
-  easeWithOptions,
-  DEFAULT_GENERATION_OPTIONS,
-} from '../../../../utils/palette-generation';
-import {
   remapRange,
   normalizeToRange,
   lerp,
   easeOut,
-} from '../../../../utils/math';
+  easeWithOptions,
+  DEFAULT_GENERATION_OPTIONS,
+} from '@dynatrace/design-tokens-ui/shared';
 
 @Component({
-  selector: 'design-tokens-ui-contrast-distribution-curve',
-  templateUrl: './contrast-distribution-curve.component.html',
-  styleUrls: ['./contrast-distribution-curve.component.scss'],
+  selector: 'design-tokens-ui-distribution-curve',
+  templateUrl: './distribution-curve.component.html',
+  styleUrls: ['./distribution-curve.component.scss'],
 })
-export class ConstrastDistributionCurveComponent
+export class DesignTokensUiDistributionCurveComponent
   implements AfterViewInit, OnChanges, OnDestroy {
   /** Fired on ngChanges */
   private _stateChanges$ = new Subject<void>();

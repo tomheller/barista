@@ -1,0 +1,157 @@
+<div class="design-tokens-ui-area-panel design-tokens-ui-settings-area">
+  <h1>{{ _themeName | humanize }}</h1>
+
+  <h2 i18n>General settings</h2>
+
+  <div class="design-tokens-ui-setting design-tokens-ui-labelled-color">
+    <design-tokens-ui-color-picker
+      [(color)]="keyColor"
+      (colorChange)="_calculateContrastColors()"
+    ></design-tokens-ui-color-picker>
+    <label class="design-tokens-ui-settings-label" i18n>Key color</label>
+  </div>
+
+  <div class="design-tokens-ui-setting design-tokens-ui-labelled-input">
+    <label class="settings-label" id="color-space-interpolation" i18n
+      >Color space interpolation:</label
+    >
+    <dt-select
+      [(ngModel)]="_palette.colorspace"
+      (ngModelChange)="_calculateContrastColors()"
+      aria-labelledby="color-space-interpolation"
+    >
+      <dt-option value="CAM02">CIECAM02</dt-option>
+      <dt-option value="HSLuv">HSLuv</dt-option>
+    </dt-select>
+  </div>
+
+  <div class="design-tokens-ui-setting design-tokens-ui-labelled-input">
+    <label class="settings-label" id="color-space-interpolation" i18n
+      >Upper contrast:</label
+    >
+    <input
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9\.]*"
+      min="1"
+      max="_maxRatio"
+      designTokensUiInput
+      [ngModel]="_palette.generationOptions.minContrast"
+      (ngModelChange)="_setGenerationOption('minContrast', $event)"
+      aria-label="Upper contrast"
+    />
+  </div>
+
+  <div class="design-tokens-ui-setting design-tokens-ui-labelled-input">
+    <label class="settings-label" id="color-space-interpolation" i18n
+      >Base contrast:</label
+    >
+    <input
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9\.]*"
+      min="1"
+      max="_maxRatio"
+      designTokensUiInput
+      [ngModel]="_palette.generationOptions.baseContrast"
+      (ngModelChange)="_setGenerationOption('baseContrast', $event)"
+      aria-label="Base contrast"
+    />
+  </div>
+
+  <div class="design-tokens-ui-setting design-tokens-ui-labelled-input">
+    <label class="settings-label" id="color-space-interpolation" i18n
+      >Lower contrast:</label
+    >
+    <input
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9\.]*"
+      min="1"
+      max="_maxRatio"
+      designTokensUiInput
+      [ngModel]="_palette.generationOptions.maxContrast"
+      (ngModelChange)="_setGenerationOption('maxContrast', $event)"
+      aria-label="Lower contrast"
+    />
+  </div>
+
+  <h3 i18n>Curves</h3>
+
+  <design-tokens-ui-easing-settings
+    [(options)]="_palette.generationOptions"
+    [distributionCount]="_palette.shades.length"
+    (distributionsChange)="_distributionsChanged($event)"
+  >
+  </design-tokens-ui-easing-settings>
+
+  <h3>Other options</h3>
+  <div class="design-tokens-ui-grouped-buttons">
+    <a
+      class="design-tokens-ui-link design-tokens-ui-external"
+      [href]="leonardoUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      i18n
+    >
+      Open in Adobe Leonardo
+    </a>
+    <fluid-button
+      (click)="_deletePalette()"
+      (blur)="_resetDeletePaletteConfirmation()"
+      size="small"
+      emphasis="high"
+    >
+      <span *ngIf="!_showDeletePaletteConfirmation" i18n>Delete Palette</span>
+      <span *ngIf="_showDeletePaletteConfirmation" i18n>Are you sure?</span>
+    </fluid-button>
+  </div>
+</div>
+
+<div class="design-tokens-ui-colors-area">
+  <div class="design-tokens-ui-button-header">
+    <h2 i18n>Colors</h2>
+
+    <fluid-button
+      size="small"
+      [emphasis]="_showGaps ? 'high' : 'low'"
+      (click)="_toggleGaps()"
+    >
+      <span i18n>Gaps</span>
+    </fluid-button>
+  </div>
+
+  <div
+    class="design-tokens-ui-shades--container"
+    [class.design-tokens-ui-gaps]="_showGaps"
+  >
+    <div
+      class="design-tokens-ui-shades"
+      *ngFor="let palette of _themePalettes; index as paletteIndex"
+    >
+      <div class="design-tokens-ui-palette-name">
+        {{ palette.name | humanize }}
+      </div>
+
+      <div class="design-tokens-ui-shades--preview-list">
+        <div
+          *ngFor="let shade of palette.shades; index as shadeIndex"
+          class="design-tokens-ui-shade-preview"
+          [style.background-color]="_contrastColors[paletteIndex][shadeIndex]"
+          [style.color]="
+            _getTextColorOnBackground(_contrastColors[paletteIndex][shadeIndex])
+          "
+        >
+          <span
+            class="design-tokens-ui-shade-description design-tokens-ui-shade-name"
+            >{{ shade.aliasName }} ({{ shade.ratio }})</span
+          >
+          <span
+            class="design-tokens-ui-shade-description design-tokens-ui-shade-color"
+            >{{ _contrastColors[paletteIndex][shadeIndex] }}</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

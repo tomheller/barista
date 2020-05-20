@@ -14,10 +14,5 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
-@Component({
-  selector: 'design-tokens-ui-color-preview',
-  templateUrl: './color-preview.component.html',
-  styleUrls: ['./color-preview.component.scss'],
-})
-export class ColorPreviewComponent {}
+export * from './pipes.module';
+export * from './humanize.pipe';

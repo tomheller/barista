@@ -1,0 +1,16 @@
+<dt-select [ngModel]="type" (ngModelChange)="typeChange.emit($event)">
+  <dt-option value="ease-in">Ease in</dt-option>
+  <dt-option value="ease-out">Ease out</dt-option>
+  <dt-option value="ease-in-out">Ease in and out</dt-option>
+</dt-select>
+
+<input
+  type="text"
+  class="design-tokens-ui-exponent-input"
+  inputmode="numeric"
+  pattern="[0-9\.]*"
+  designTokensUiInput
+  [ngModel]="exponent"
+  (ngModelChange)="exponentChange.emit($event)"
+  aria-label="Lower exponent"
+/>

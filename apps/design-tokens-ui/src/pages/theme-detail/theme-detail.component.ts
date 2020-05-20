@@ -27,25 +27,28 @@ import {
 } from '../../utils/colors';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DEFAULT_GENERATION_OPTIONS } from '../../utils/palette-generation';
+import { DEFAULT_GENERATION_OPTIONS } from '@dynatrace/design-tokens-ui/shared';
 
 @Component({
   selector: 'design-tokens-ui-palette-detail',
-  templateUrl: './palette-detail.component.html',
-  styleUrls: ['./palette-detail.component.scss'],
+  templateUrl: './theme-detail.component.html',
+  styleUrls: ['./theme-detail.component.scss'],
 })
-export class PaletteDetailComponent implements OnDestroy {
+export class ThemeDetailComponent implements OnDestroy {
   /** @internal maximum contrast ratio supported by Leonardo */
   readonly _maxRatio = 21;
 
-  /** @internal palette that is currently edited */
+  // TODO: remove
   _palette: FluidPaletteSourceAlias;
 
-  /** @internal cached to avoid recalculating on change detection cycles */
-  _contrastColors: string[];
+  /** All palettes belonging to the current theme */
+  _themePalettes: FluidPaletteSourceAlias[];
 
-  /** Identifier of the current palette */
-  private _paletteName: string;
+  /** Generated contrast colors for all themes */
+  _contrastColors: string[][];
+
+  /** @internal Identifier of the current theme */
+  _themeName: string;
 
   /** @internal the user must click the delete button twice to confirm */
   _showDeletePaletteConfirmation = false;
@@ -62,8 +65,14 @@ export class PaletteDetailComponent implements OnDestroy {
     route: ActivatedRoute,
   ) {
     route.params.pipe(takeUntil(this._destroy$)).subscribe((params) => {
-      this._paletteName = params.palette;
-      this._palette = _paletteSourceService.getPaletteAlias(this._paletteName)!;
+      this._themeName = params.theme;
+      this._themePalettes = _paletteSourceService.getPaletteAliasesForTheme(
+        this._themeName,
+      );
+      this._palette = _paletteSourceService.getPaletteAlias(
+        this._themeName,
+        'neutral',
+      )!;
 
       if (!this._palette.generationOptions) {
         // Easing options might not be available initially
@@ -76,7 +85,8 @@ export class PaletteDetailComponent implements OnDestroy {
   ngOnDestroy(): void {
     // Save edited palette on destroy using the original name
     this._paletteSourceService.setPaletteAlias(
-      this._paletteName,
+      this._themeName,
+      'neutral',
       this._palette,
     );
 
@@ -88,9 +98,15 @@ export class PaletteDetailComponent implements OnDestroy {
   get style(): SafeStyle {
     // TODO: replace with new shades when naming scheme is implemented
     return this._sanitizer.bypassSecurityTrustStyle(
-      `--color: ${this.getGeneratedContrastShade(0)};
-       --color-dark: ${this.getGeneratedContrastShade(1)};
-       --color-darker: ${this.getGeneratedContrastShade(2)};`,
+      `--color: ${this.getGeneratedContrastShade(this._themePalettes[0], 0)};
+       --color-dark: ${this.getGeneratedContrastShade(
+         this._themePalettes[0],
+         1,
+       )};
+       --color-darker: ${this.getGeneratedContrastShade(
+         this._themePalettes[0],
+         2,
+       )};`,
     );
   }
 
@@ -108,7 +124,9 @@ export class PaletteDetailComponent implements OnDestroy {
 
   /** @internal Recalculate the contrast colors */
   _calculateContrastColors(): void {
-    this._contrastColors = generatePaletteContrastColors(this._palette);
+    this._contrastColors = this._themePalettes.map((palette) =>
+      generatePaletteContrastColors(palette),
+    );
   }
 
   /** @internal */
@@ -172,10 +190,17 @@ export class PaletteDetailComponent implements OnDestroy {
    * @param shadeRelativeToBase zero for the base shade a negative or positive number
    * for a lower or higher contrast compared to the base shade
    */
-  getGeneratedContrastShade(shadeRelativeToBase: number): string {
+  getGeneratedContrastShade(
+    palette: FluidPaletteSourceAlias,
+    shadeRelativeToBase: number,
+  ): string {
+    const paletteContrastColors = this._contrastColors[
+      this._themePalettes.indexOf(palette)
+    ];
+
     // The base shade is located at the middle
-    const baseShadeIndex = Math.floor(this._contrastColors.length / 2);
-    return this._contrastColors[baseShadeIndex + shadeRelativeToBase];
+    const baseShadeIndex = Math.floor(paletteContrastColors.length / 2);
+    return paletteContrastColors[baseShadeIndex + shadeRelativeToBase];
   }
 
   /** @internal Adobe Leonardo URL for the current color palette */

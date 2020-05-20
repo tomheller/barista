@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-
-const routes: Routes = [
-  {
-    path: 'theme',
-    loadChildren: () =>
-      import('../pages/palettes/palettes.module').then(
-        (module) => module.PalettesModule,
-      ),
-  },
-];
+import { HumanizePipe } from './humanize.pipe';
 
 @NgModule({
-  exports: [RouterModule],
-  imports: [RouterModule.forRoot(routes)],
+  imports: [CommonModule],
+  declarations: [HumanizePipe],
+  exports: [HumanizePipe],
 })
-export class AppRoutingModule {}
+export class PipesModule {}

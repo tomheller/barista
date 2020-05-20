@@ -17,34 +17,31 @@
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
-import { DtButtonModule } from '@dynatrace/barista-components/button';
 import { DtIconModule } from '@dynatrace/barista-components/icon';
-import { DtTopBarNavigationModule } from '@dynatrace/barista-components/top-bar-navigation';
+import { DtSelectModule } from '@dynatrace/barista-components/select';
+import { DtExpandableSectionModule } from '@dynatrace/barista-components/expandable-section';
 
+import { ThemeDetailComponent } from './theme-detail.component';
+import { ColorPickerComponent } from './components/color-picker/color-picker.component';
+import { DesignTokensUiInputModule } from '@dynatrace/design-tokens-ui/input';
+import { DesignTokensUiEasingSettingsModule } from '@dynatrace/design-tokens-ui/easing-settings';
 import { PipesModule } from '../../pipes';
-import { PalettesComponent } from './palettes.component';
-import { ThemeTileComponent } from './components/theme-tile/theme-tile.component';
 
 @NgModule({
   imports: [
     CommonModule,
-    RouterModule.forChild([
-      { path: '', component: PalettesComponent },
-      {
-        path: ':theme',
-        loadChildren: () =>
-          import('../theme-detail/theme-detail.module').then(
-            (module) => module.ThemeDetailModule,
-          ),
-      },
-    ]),
-    DtButtonModule,
+    FormsModule,
+    RouterModule.forChild([{ path: '', component: ThemeDetailComponent }]),
     DtIconModule,
-    DtTopBarNavigationModule,
+    DtSelectModule,
+    DtExpandableSectionModule,
     PipesModule,
+    DesignTokensUiInputModule,
+    DesignTokensUiEasingSettingsModule,
   ],
-  declarations: [PalettesComponent, ThemeTileComponent],
+  declarations: [ThemeDetailComponent, ColorPickerComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class PalettesModule {}
+export class ThemeDetailModule {}

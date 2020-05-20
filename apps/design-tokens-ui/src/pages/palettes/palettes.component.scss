@@ -15,19 +15,10 @@
  */
 
 @import '~@dynatrace/fluid-design-tokens/global/palette';
+@import '~@dynatrace/fluid-design-tokens/global/spacing';
 
 :host {
   display: block;
-  height: 100%;
-  overflow-y: auto;
-  padding-bottom: 16px;
-}
-
-.design-tokens-ui-palette-tile-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 1.2rem;
-  margin-right: 20px;
 }
 
 .design-tokens-ui-add-palette {
@@ -57,7 +48,7 @@
   dt-icon {
     height: 28px;
     width: 28px;
-    margin-right: 12px;
+    margin-right: $fluid-spacing--small;
     fill: var(--color-maxcontrast);
   }
 }
@@ -65,8 +56,4 @@
 .dt-top-bar-navigation,
 .dt-top-bar-action {
   background-color: transparent;
-}
-
-.design-tokens-ui-palette-options {
-  margin-bottom: 16px;
 }

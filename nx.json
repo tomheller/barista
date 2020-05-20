@@ -347,6 +347,12 @@
     },
     "design-tokens-ui-input": {
       "tags": ["type:library"]
+    },
+    "design-tokens-ui-easing-settings": {
+      "tags": ["type:library"]
+    },
+    "design-tokens-ui-shared": {
+      "tags": ["type:library"]
     }
   }
 }

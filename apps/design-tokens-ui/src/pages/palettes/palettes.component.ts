@@ -18,7 +18,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FluidPaletteSourceAlias } from '@dynatrace/shared/barista-definitions';
 import { PaletteSourceService } from '../../services/palette';
-import { DEFAULT_GENERATION_OPTIONS } from '../../utils/palette-generation';
+import { DEFAULT_GENERATION_OPTIONS } from '@dynatrace/design-tokens-ui/shared';
 
 @Component({
   selector: 'design-tokens-ui-palettes',
@@ -26,13 +26,13 @@ import { DEFAULT_GENERATION_OPTIONS } from '../../utils/palette-generation';
   styleUrls: ['./palettes.component.scss'],
 })
 export class PalettesComponent {
-  paletteAliases: FluidPaletteSourceAlias[];
+  paletteAliasesByTheme: Map<string, FluidPaletteSourceAlias[]>;
 
   constructor(
     private _router: Router,
     private _paletteSourceService: PaletteSourceService,
   ) {
-    this.paletteAliases = _paletteSourceService.getAllPaletteAliases();
+    this.paletteAliasesByTheme = _paletteSourceService.getPaletteAliasesGroupedByTheme();
   }
 
   /** @internal Export palette as YAML */
@@ -49,6 +49,7 @@ export class PalettesComponent {
       baseColor: '#ffffff',
       colorspace: 'CAM02',
       type: 'adobe-leonardo',
+      theme: 'abyss',
       shades: [
         {
           name: 'lightest',

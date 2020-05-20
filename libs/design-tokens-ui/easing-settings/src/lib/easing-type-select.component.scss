@@ -1,0 +1,16 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  margin: 4px 0 12px;
+  justify-content: center;
+}
+
+.dt-select {
+  margin-right: 8px;
+}
+
+.design-tokens-ui-exponent-input {
+  width: 28px;
+  text-align: center;
+}

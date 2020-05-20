@@ -14,21 +14,6 @@
  * limitations under the License.
  */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-
-const routes: Routes = [
-  {
-    path: 'theme',
-    loadChildren: () =>
-      import('../pages/palettes/palettes.module').then(
-        (module) => module.PalettesModule,
-      ),
-  },
-];
-
-@NgModule({
-  exports: [RouterModule],
-  imports: [RouterModule.forRoot(routes)],
-})
-export class AppRoutingModule {}
+export * from './lib/easing-settings.module';
+export * from './lib/distribution-curve.component';
+export * from './lib/easing-type-select.component';

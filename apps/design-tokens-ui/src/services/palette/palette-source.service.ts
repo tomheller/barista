@@ -21,8 +21,7 @@ import {
   FluidPaletteSourceAlias,
   FluidPaletteSource,
 } from '@dynatrace/shared/barista-definitions';
-// TODO: switch to lodash-es when available.
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { stringify } from 'yaml';
 
 const LEONARDO_BASE_URL = 'https://leonardocolor.io/';
@@ -44,17 +43,43 @@ export class PaletteSourceService {
     return cloneDeep(this._paletteSource.aliases);
   }
 
+  /** Returns all palette source aliases grouped by theme */
+  getPaletteAliasesGroupedByTheme(): Map<string, FluidPaletteSourceAlias[]> {
+    return cloneDeep(this._paletteSource.aliases).reduce((map, alias) => {
+      if (map.has(alias.theme)) {
+        map.get(alias.theme)!.push(alias);
+      } else {
+        map.set(alias.theme, [alias]);
+      }
+      return map;
+    }, new Map<string, FluidPaletteSourceAlias[]>());
+  }
+
+  /** Returns all palette source aliases that belong to the given theme */
+  getPaletteAliasesForTheme(theme: string): FluidPaletteSourceAlias[] {
+    return this._paletteSource.aliases.filter((alias) => alias.theme === theme);
+  }
+
   /** Returns a palette source alias by name */
-  getPaletteAlias(name: string): FluidPaletteSourceAlias | undefined {
+  getPaletteAlias(
+    theme: string,
+    name: string,
+  ): FluidPaletteSourceAlias | undefined {
     return cloneDeep(
-      this._paletteSource.aliases.find((alias) => alias.name === name),
+      this._paletteSource.aliases.find(
+        (alias) => alias.name === name && alias.theme === theme,
+      ),
     );
   }
 
   /** Overwrites the saved palette with the given name with another palette */
-  setPaletteAlias(name: string, newAlias: FluidPaletteSourceAlias): void {
+  setPaletteAlias(
+    theme: string,
+    name: string,
+    newAlias: FluidPaletteSourceAlias,
+  ): void {
     let index = this._paletteSource.aliases.findIndex(
-      (alias) => alias.name === name,
+      (alias) => alias.name === name && alias.theme === theme,
     );
     if (index !== -1) {
       this._paletteSource.aliases[index] = newAlias;

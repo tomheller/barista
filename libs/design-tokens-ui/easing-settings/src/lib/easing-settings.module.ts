@@ -14,37 +14,32 @@
  * limitations under the License.
  */
 
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { DtIconModule } from '@dynatrace/barista-components/icon';
+import { DesignTokensUiDistributionCurveComponent } from './distribution-curve.component';
+import { DesignTokensUiEasingTypeSelectComponent } from './easing-type-select.component';
 import { DtSelectModule } from '@dynatrace/barista-components/select';
-import { DtExpandableSectionModule } from '@dynatrace/barista-components/expandable-section';
-
-import { PaletteDetailComponent } from './palette-detail.component';
-import { ColorPickerComponent } from './components/color-picker/color-picker.component';
-import { ColorPreviewComponent } from './components/color-preview/color-preview.component';
-import { ConstrastDistributionCurveComponent } from './components/contrast-distribution-curve/contrast-distribution-curve.component';
 import { DesignTokensUiInputModule } from '@dynatrace/design-tokens-ui/input';
+import { DesignTokensUiEasingSettingsComponent } from './easing-settings.component';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule.forChild([{ path: '', component: PaletteDetailComponent }]),
-    DtIconModule,
     DtSelectModule,
-    DtExpandableSectionModule,
     DesignTokensUiInputModule,
   ],
   declarations: [
-    PaletteDetailComponent,
-    ColorPickerComponent,
-    ColorPreviewComponent,
-    ConstrastDistributionCurveComponent,
+    DesignTokensUiDistributionCurveComponent,
+    DesignTokensUiEasingTypeSelectComponent,
+    DesignTokensUiEasingSettingsComponent,
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  exports: [
+    DesignTokensUiDistributionCurveComponent,
+    DesignTokensUiEasingTypeSelectComponent,
+    DesignTokensUiEasingSettingsComponent,
+  ],
 })
-export class PaletteDetailModule {}
+export class DesignTokensUiEasingSettingsModule {}

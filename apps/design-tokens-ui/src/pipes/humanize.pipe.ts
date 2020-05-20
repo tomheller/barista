@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-
-const routes: Routes = [
-  {
-    path: 'theme',
-    loadChildren: () =>
-      import('../pages/palettes/palettes.module').then(
-        (module) => module.PalettesModule,
-      ),
-  },
-];
-
-@NgModule({
-  exports: [RouterModule],
-  imports: [RouterModule.forRoot(routes)],
-})
-export class AppRoutingModule {}
+import { Pipe, PipeTransform } from '@angular/core';
+import { startCase } from 'lodash-es';
+/*
+ * Transforms kebab-case input to better readable output
+ */
+@Pipe({ name: 'humanize' })
+export class HumanizePipe implements PipeTransform {
+  transform(value: string): string {
+    return startCase(value.replace(/-/g, ' '));
+  }
+}

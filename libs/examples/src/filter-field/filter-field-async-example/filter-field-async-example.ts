@@ -22,35 +22,42 @@ import {
 
 // tslint:disable: no-any
 
+interface BackendType {
+  autocomplete: Array<{ name: string }>;
+  id: number;
+}
+
 @Component({
   selector: 'dt-example-filter-field-async',
   templateUrl: 'filter-field-async-example.html',
 })
 export class DtExampleFilterFieldAsync {
   private DATA = {
+    id: 123,
     autocomplete: [
       {
+        id: 121,
         name: 'AUT (async)',
-        async: true,
-        autocomplete: [],
+        autocomplete: [{ name: 'AUT (async)' }],
       },
       {
         name: 'USA',
-        autocomplete: [
-          { name: 'San Francisco' },
-          { name: 'Los Angeles' },
-          { name: 'New York' },
-        ],
+        id: 123,
       },
     ],
   };
 
   private ASYNC_DATA = {
     name: 'AUT (async)',
-    autocomplete: [{ name: 'Linz' }, { name: 'Vienna' }, { name: 'Graz' }],
+    id: 123,
+    autocomplete: [
+      { name: 'Linz', id: 123 },
+      { name: 'Vienna', id: 123 },
+      { name: 'Graz', id: 123 },
+    ],
   };
 
-  _dataSource = new DtFilterFieldDefaultDataSource(this.DATA);
+  _dataSource = new DtFilterFieldDefaultDataSource<BackendType>(this.DATA);
 
   currentFilterChanged(
     event: DtFilterFieldCurrentFilterChangeEvent<any>,

@@ -35,41 +35,48 @@ export interface DtFilterFieldDefaultDataSourceSimpleOption {
   name: string;
 }
 
-export type DtFilterFieldDefaultDataSourceOption =
+export type DtFilterFieldDefaultDataSourceOption<T = {}> =
   | DtFilterFieldDefaultDataSourceSimpleOption
-  | (DtFilterFieldDefaultDataSourceAutocomplete &
+  | (DtFilterFieldDefaultDataSourceAutocomplete<T> &
       DtFilterFieldDefaultDataSourceSimpleOption)
-  | (DtFilterFieldDefaultDataSourceFreeText &
+  | (DtFilterFieldDefaultDataSourceFreeText<T> &
       DtFilterFieldDefaultDataSourceSimpleOption)
   | (DtFilterFieldDefaultDataSourceRange &
       DtFilterFieldDefaultDataSourceSimpleOption);
 
 /** Shape of an object to be usable as a group in a free-text */
-export interface DtFilterFieldDefaultDataSourceSimpleGroup {
+export interface DtFilterFieldDefaultDataSourceSimpleGroup<T = {}> {
   name: string;
-  options: Array<DtFilterFieldDefaultDataSourceSimpleOption>;
+  options: Array<T & DtFilterFieldDefaultDataSourceSimpleOption>;
 }
 
 /** Shape of an object to be usable as a group in an autocomplete */
-export interface DtFilterFieldDefaultDataSourceGroup
-  extends DtFilterFieldDefaultDataSourceSimpleGroup {
-  options: Array<DtFilterFieldDefaultDataSourceOption>;
+export interface DtFilterFieldDefaultDataSourceGroup<T = {}> {
+  name: string;
+  options: Array<T & DtFilterFieldDefaultDataSourceOption<T>>;
 }
 
 /** Shape of an object to be usable as an autocomplete */
-export interface DtFilterFieldDefaultDataSourceAutocomplete {
+export interface DtFilterFieldDefaultDataSourceAutocomplete<T = {}> {
   autocomplete: Array<
-    DtFilterFieldDefaultDataSourceOption | DtFilterFieldDefaultDataSourceGroup
+    Omit<T, 'autocomplete'> &
+      (
+        | DtFilterFieldDefaultDataSourceOption<Omit<T, 'autocomplete'>>
+        | DtFilterFieldDefaultDataSourceGroup<Omit<T, 'autocomplete'>>
+      )
   >;
   distinct?: boolean;
   async?: boolean;
 }
 
 /** Shape of an object to be usable as a free text variant */
-export interface DtFilterFieldDefaultDataSourceFreeText {
+export interface DtFilterFieldDefaultDataSourceFreeText<T = {}> {
   suggestions: Array<
-    | DtFilterFieldDefaultDataSourceSimpleOption
-    | DtFilterFieldDefaultDataSourceSimpleGroup
+    T &
+      (
+        | DtFilterFieldDefaultDataSourceSimpleOption
+        | DtFilterFieldDefaultDataSourceSimpleGroup<T>
+      )
   >;
   validators: DtFilterFieldValidator[];
   unique?: boolean;
@@ -88,11 +95,11 @@ export interface DtFilterFieldDefaultDataSourceRange {
   unique?: boolean;
 }
 
-export type DtFilterFieldDefaultDataSourceType =
-  | DtFilterFieldDefaultDataSourceOption
-  | DtFilterFieldDefaultDataSourceGroup
-  | DtFilterFieldDefaultDataSourceAutocomplete
-  | DtFilterFieldDefaultDataSourceFreeText
+export type DtFilterFieldDefaultDataSourceType<T = {}> =
+  | DtFilterFieldDefaultDataSourceAutocomplete<T>
+  | DtFilterFieldDefaultDataSourceOption<T>
+  | DtFilterFieldDefaultDataSourceGroup<T>
+  | DtFilterFieldDefaultDataSourceFreeText<T>
   | DtFilterFieldDefaultDataSourceRange;
 
 // tslint:disable: no-bitwise
@@ -160,22 +167,25 @@ export type DtFilterFieldDefaultDataSourceType =
  *   }
  * }
  */
-export class DtFilterFieldDefaultDataSource
-  implements DtFilterFieldDataSource<DtFilterFieldDefaultDataSourceType> {
-  private readonly _data$: BehaviorSubject<DtFilterFieldDefaultDataSourceType | null>;
+export class DtFilterFieldDefaultDataSource<T = {}>
+  implements
+    DtFilterFieldDataSource<T & DtFilterFieldDefaultDataSourceType<T>> {
+  private readonly _data$: BehaviorSubject<
+    (T & DtFilterFieldDefaultDataSourceAutocomplete<T>) | null
+  >;
 
   /** Structure of data that is used, transformed and rendered by the filter-field. */
-  get data(): DtFilterFieldDefaultDataSourceType | null {
+  get data(): (T & DtFilterFieldDefaultDataSourceAutocomplete<T>) | null {
     return this._data$.value;
   }
-  set data(data: DtFilterFieldDefaultDataSourceType | null) {
+  set data(data: (T & DtFilterFieldDefaultDataSourceAutocomplete<T>) | null) {
     this._data$.next(data);
   }
 
-  constructor(initialData?: DtFilterFieldDefaultDataSourceType) {
-    this._data$ = new BehaviorSubject<DtFilterFieldDefaultDataSourceType | null>(
-      initialData ? initialData : null,
-    );
+  constructor(initialData?: T & DtFilterFieldDefaultDataSourceAutocomplete<T>) {
+    this._data$ = new BehaviorSubject<
+      (T & DtFilterFieldDefaultDataSourceAutocomplete<T>) | null
+    >(initialData ? initialData : null);
   }
 
   /**
@@ -183,7 +193,9 @@ export class DtFilterFieldDefaultDataSource
    * Should return a stream of data that will be transformed, filtered and
    * displayed by the DtFilterFieldViewer (filter-field)
    */
-  connect(): Observable<DtNodeDef<DtFilterFieldDefaultDataSourceType> | null> {
+  connect(): Observable<DtNodeDef<
+    T & DtFilterFieldDefaultDataSourceType<T>
+  > | null> {
     return this._data$.pipe(map((data) => this.transformObject(data)));
   }
 
@@ -196,19 +208,19 @@ export class DtFilterFieldDefaultDataSource
   isAutocomplete(
     // tslint:disable-next-line: no-any
     data: any,
-  ): data is DtFilterFieldDefaultDataSourceAutocomplete {
+  ): data is DtFilterFieldDefaultDataSourceAutocomplete<T> {
     return isObject(data) && Array.isArray(data.autocomplete);
   }
 
   /** Whether the provided data object is of type OptionData */
   // tslint:disable-next-line: no-any
-  isOption(data: any): data is DtFilterFieldDefaultDataSourceOption {
+  isOption(data: any): data is DtFilterFieldDefaultDataSourceOption<T> {
     return isObject(data) && typeof data.name === 'string';
   }
 
   /** Whether the provided data object is of type GroupData */
   // tslint:disable-next-line: no-any
-  isGroup(data: any): data is DtFilterFieldDefaultDataSourceGroup {
+  isGroup(data: any): data is DtFilterFieldDefaultDataSourceGroup<T> {
     return (
       isObject(data) &&
       typeof data.name === 'string' &&
@@ -218,7 +230,7 @@ export class DtFilterFieldDefaultDataSource
 
   /** Whether the provided data object is of type FreeTextData */
   // tslint:disable-next-line: no-any
-  isFreeText(data: any): data is DtFilterFieldDefaultDataSourceFreeText {
+  isFreeText(data: any): data is DtFilterFieldDefaultDataSourceFreeText<T> {
     return isObject(data) && Array.isArray(data.suggestions);
   }
 
@@ -230,8 +242,8 @@ export class DtFilterFieldDefaultDataSource
 
   /** Transforms the provided data into a DtNodeDef which contains a DtAutocompleteDef. */
   transformAutocomplete(
-    data: DtFilterFieldDefaultDataSourceAutocomplete,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceAutocomplete> {
+    data: T & DtFilterFieldDefaultDataSourceAutocomplete<T>,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceAutocomplete<T>> {
     const def = dtAutocompleteDef(
       data,
       null,
@@ -248,15 +260,17 @@ export class DtFilterFieldDefaultDataSource
 
   /** Transforms the provided data into a DtNodeDef which contains a DtOptionDef. */
   transformOption(
-    data: DtFilterFieldDefaultDataSourceOption,
+    data: T & DtFilterFieldDefaultDataSourceOption<T>,
     parentAutocompleteOrOption: DtNodeDef<
-      DtFilterFieldDefaultDataSourceType
+      T & DtFilterFieldDefaultDataSourceType<T>
     > | null = null,
-    existingDef: DtNodeDef<DtFilterFieldDefaultDataSourceType> | null = null,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceOption> {
+    existingDef: DtNodeDef<
+      T & DtFilterFieldDefaultDataSourceType<T>
+    > | null = null,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceOption<T>> {
     const parentGroup = isDtGroupDef<
-      DtFilterFieldDefaultDataSourceGroup,
-      DtFilterFieldDefaultDataSourceOption
+      DtFilterFieldDefaultDataSourceGroup<T>,
+      DtFilterFieldDefaultDataSourceOption<T>
     >(parentAutocompleteOrOption as any)
       ? parentAutocompleteOrOption
       : null;
@@ -266,7 +280,7 @@ export class DtFilterFieldDefaultDataSource
         : isDtAutocompleteDef(parentAutocompleteOrOption)
         ? (parentAutocompleteOrOption as DtNodeDef)
         : null;
-    return dtOptionDef<DtFilterFieldDefaultDataSourceOption>(
+    return dtOptionDef<T & DtFilterFieldDefaultDataSourceOption<T>>(
       data,
       existingDef,
       data.name,
@@ -278,26 +292,28 @@ export class DtFilterFieldDefaultDataSource
 
   /** Transforms the provided data into a DtNodeDef which contains a DtGroupDef. */
   transformGroup(
-    data: DtFilterFieldDefaultDataSourceGroup,
+    data: T & DtFilterFieldDefaultDataSourceGroup<T>,
     parentAutocomplete: DtNodeDef<
-      DtFilterFieldDefaultDataSourceType
+      T & DtFilterFieldDefaultDataSourceType<T>
     > | null = null,
-    existingDef: DtNodeDef<DtFilterFieldDefaultDataSourceType> | null = null,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceGroup> {
+    existingDef: DtNodeDef<
+      T & DtFilterFieldDefaultDataSourceType<T>
+    > | null = null,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceGroup<T>> {
     const def = dtGroupDef<
-      DtFilterFieldDefaultDataSourceGroup,
-      DtFilterFieldDefaultDataSourceOption
+      T & DtFilterFieldDefaultDataSourceGroup<T>,
+      T & DtFilterFieldDefaultDataSourceOption<T>
     >(data, existingDef, data.name, [], parentAutocomplete);
     def.group.options = this.transformList(data.options, def) as DtNodeDef<
-      DtFilterFieldDefaultDataSourceOption
+      T & DtFilterFieldDefaultDataSourceOption<T>
     >[];
     return def;
   }
 
   /** Transforms the provided data into a DtNodeDef which contains a DtFreeTextDef. */
   transformFreeText(
-    data: DtFilterFieldDefaultDataSourceFreeText,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceFreeText> {
+    data: T & DtFilterFieldDefaultDataSourceFreeText<T>,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceFreeText<T>> {
     const def = dtFreeTextDef(
       data,
       null,
@@ -311,8 +327,8 @@ export class DtFilterFieldDefaultDataSource
 
   /** Transforms the provided data into a DtNodeDef which contains a DtRangeDef. */
   transformRange(
-    data: DtFilterFieldDefaultDataSourceRange,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceRange> {
+    data: T & DtFilterFieldDefaultDataSourceRange,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceRange> {
     return dtRangeDef(
       data,
       null,
@@ -327,10 +343,10 @@ export class DtFilterFieldDefaultDataSource
 
   /** Transforms the provided data into a DtNodeDef. */
   transformObject(
-    data: DtFilterFieldDefaultDataSourceType | null,
-    parent: DtNodeDef<DtFilterFieldDefaultDataSourceType> | null = null,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceType> | null {
-    let def: DtNodeDef<DtFilterFieldDefaultDataSourceType> | null = null;
+    data: (T & DtFilterFieldDefaultDataSourceType<T>) | null,
+    parent: DtNodeDef<T & DtFilterFieldDefaultDataSourceType<T>> | null = null,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceType<T>> | null {
+    let def: DtNodeDef<T & DtFilterFieldDefaultDataSourceType<T>> | null = null;
     if (this.isAutocomplete(data)) {
       def = this.transformAutocomplete(data);
     } else if (this.isFreeText(data)) {
@@ -344,7 +360,7 @@ export class DtFilterFieldDefaultDataSource
     } else if (this.isOption(data)) {
       def = this.transformOption(
         data,
-        parent as DtNodeDef<DtFilterFieldDefaultDataSourceAutocomplete>,
+        parent as DtNodeDef<T & DtFilterFieldDefaultDataSourceAutocomplete<T>>,
         def,
       );
     }
@@ -353,13 +369,13 @@ export class DtFilterFieldDefaultDataSource
 
   /** Transforms the provided list of data objects into an array of DtNodeDefs. */
   transformList(
-    list: Array<DtFilterFieldDefaultDataSourceType>,
-    parent: DtNodeDef<DtFilterFieldDefaultDataSourceType> | null = null,
-  ): DtNodeDef<DtFilterFieldDefaultDataSourceType>[] {
+    list: Array<T & DtFilterFieldDefaultDataSourceType<T>>,
+    parent: DtNodeDef<T & DtFilterFieldDefaultDataSourceType<T>> | null = null,
+  ): DtNodeDef<T & DtFilterFieldDefaultDataSourceType<T>>[] {
     return list
       .map((item) => this.transformObject(item, parent))
       .filter((item) => item !== null) as DtNodeDef<
-      DtFilterFieldDefaultDataSourceType
+      T & DtFilterFieldDefaultDataSourceType<T>
     >[];
   }
 }

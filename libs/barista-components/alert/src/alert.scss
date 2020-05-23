@@ -43,8 +43,3 @@
   padding: 10px 16px;
   flex-grow: 1;
 }
-
-// Apply the alert theme to all theme definitions
-@include dt-apply-theme() {
-  @include dt-theme-alert($dt-current-theme);
-}

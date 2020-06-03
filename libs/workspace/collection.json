@@ -8,6 +8,12 @@
       "factory": "./src/schematics/dt-component-e2e/index",
       "schema": "./src/schematics/dt-component-e2e/schema.json",
       "aliases": ["dt-e2e"]
+    },
+    "dt-components-example": {
+      "description": "Create a new barista example",
+      "factory": "./src/schematics/dt-component-example/index",
+      "schema": "./src/schematics/dt-component-example/schema.json",
+      "aliases": ["dt-example"]
     }
   }
 }

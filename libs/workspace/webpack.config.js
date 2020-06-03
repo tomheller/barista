@@ -17,6 +17,7 @@ const entries = [
   'src/builders/elements/index.ts',
   'src/schematics/dt-component-e2e/index.ts',
   'src/index.ts',
+  'src/schematics/dt-component-example/index.ts',
 ];
 
 module.exports = (config) => {

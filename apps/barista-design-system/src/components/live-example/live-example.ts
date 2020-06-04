@@ -233,22 +233,22 @@ export class BaLiveExample implements OnInit, OnDestroy {
   }
 
   private _initExample(): void {
-    this._example$ = from(
-      import(`../../../../../libs/examples/src/${this.directory}/index`),
-    ).pipe(
-      map((es6Module) => {
-        return {
-          component: es6Module[this.name],
-          module: getNgModuleFromEs6Module(es6Module),
-        };
-      }),
-      filter(
-        ({ component, module }) => isDefined(component) && isDefined(module),
-      ),
-      switchMap(({ component, module }) =>
-        from(this.loadModuleFactory(module!)).pipe(map(() => component)),
-      ),
-    );
+    // this._example$ = from(
+    //   import(`../../../../../libs/examples/src/${this.directory}/index`),
+    // ).pipe(
+    //   map((es6Module) => {
+    //     return {
+    //       component: es6Module[this.name],
+    //       module: getNgModuleFromEs6Module(es6Module),
+    //     };
+    //   }),
+    //   filter(
+    //     ({ component, module }) => isDefined(component) && isDefined(module),
+    //   ),
+    //   switchMap(({ component, module }) =>
+    //     from(this.loadModuleFactory(module!)).pipe(map(() => component)),
+    //   ),
+    // );
   }
 
   /**

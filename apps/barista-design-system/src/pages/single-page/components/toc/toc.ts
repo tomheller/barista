@@ -26,7 +26,7 @@ import {
 import { Platform } from '@angular/cdk/platform';
 import { DOCUMENT } from '@angular/common';
 import { TableOfContents } from '@dynatrace/shared/barista-definitions';
-import { BaScrollSpyService } from 'apps/barista-design-system/src/shared/services/scroll-spy.service';
+import { BaScrollSpyService } from '../../../../shared/services/scroll-spy.service';
 
 @Component({
   selector: 'ba-toc',

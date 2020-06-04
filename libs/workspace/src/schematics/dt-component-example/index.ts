@@ -15,7 +15,6 @@
  */
 
 import { strings } from '@angular-devkit/core';
-import { existsSync } from 'fs';
 import {
   apply,
   chain,
@@ -235,7 +234,8 @@ export default function (options: DtComponentExampleOptions): Rule {
     const indexPath = normalize(
       `libs/examples/src/${strings.dasherize(options.component)}/index.ts`,
     );
-    const isNewComponent = !existsSync(indexPath);
+
+    const isNewComponent = !tree.exists(indexPath);
 
     if (isNewComponent) {
       tree.create(indexPath, generateIndexFileContent(extendedOptions));

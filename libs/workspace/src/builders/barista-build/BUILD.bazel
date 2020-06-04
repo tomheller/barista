@@ -1,10 +1,18 @@
 load("@npm_bazel_typescript//:index.bzl", "ts_library")
 load("//tools/bazel_rules:index.bzl", "rollup")
 
+package(default_visibility = ["//:__subpackages__"])
+
 rollup(
-    name = "barista-build",
+    name = "builder",
     assets = ["schema.json"],
     entry_point = {"builder.ts": "builder.bundled.js"},
+    deps = [":compile"],
+)
+
+rollup(
+    name = "renderer",
+    entry_point = {"renderer.ts": "renderer.bundled.js"},
     deps = [":compile"],
 )
 

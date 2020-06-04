@@ -237,6 +237,7 @@ export const relativeUrlTransformer: BaPageTransformer = async (source) => {
   return transformed;
 };
 
+/** Add contentSection to headlines to be able to diferentiate between headlines */
 export const sectionTransformer: BaPageTransformer = async (source) => {
   const transformed = { ...source };
 
@@ -257,6 +258,7 @@ export const sectionTransformer: BaPageTransformer = async (source) => {
   return transformed;
 };
 
+/** generates a toc json containing headlines with children */
 export const tableOfContentGenerator: BaPageTransformer = async (source) => {
   const transformed = { ...source };
   let toc: TableOfContents[] = [];
@@ -266,7 +268,6 @@ export const tableOfContentGenerator: BaPageTransformer = async (source) => {
     transformed.content = runWithCheerio(source.content, ($) => {
       const headlines = $('h2, h3');
       let currentH2 = -1;
-      // TODO: Id is lost somewhere? --------------!
       headlines.each((_index, headline) => {
         const headlineId = $(headline).attr('id');
         const headlineText = $(headline).text();

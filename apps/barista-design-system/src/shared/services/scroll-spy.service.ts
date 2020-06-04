@@ -71,30 +71,31 @@ export class BaScrollSpyService {
   /** Calculates top values and finds the active item putting it into a stream */
   calculateActiveItem(elements: Element[]): void {
     this.calcTopValues(elements);
-    this.activeItemId$.next(this.findActiveItem());
+    const activeItem = this.findActiveItem();
+    if (activeItem) {
+      this.activeItemId$.next(activeItem);
+    }
   }
 
   /** Calculates top bounding properties for an element array */
   calcTopValues(elements: Element[]): void {
     this.headlineElements = [];
-    elements.forEach((element) => {
-      const headlineElement: HeadlineElement = {
+    this.headlineElements = elements
+      .map((element) => ({
         top:
           this._getScrollTop() +
           element.getBoundingClientRect().top -
           this.OFFSET,
-        element: element,
-      };
-      this.headlineElements.push(headlineElement);
-    });
-    this.headlineElements.sort((a, b) => compareValues(a.top, b.top, 'asc'));
+        element,
+      }))
+      .sort((a, b) => compareValues(a.top, b.top, 'asc'));
   }
 
   /**
    * Evaluates by comparing the users scroll position with the element top property and return the id of an element
    * that should be highlighted
    */
-  findActiveItem(): string {
+  findActiveItem(): string | null {
     // The element id of the item to be highlighted
     let activeItem: string | null = null;
     this._zone.runOutsideAngular(() => {
@@ -102,6 +103,7 @@ export class BaScrollSpyService {
       const contentHeight = this._getContentHeight();
       const viewportHeight = this._getViewportHeight();
       for (let i = 0; i < this.headlineElements.length; i++) {
+        console.log(scrollTop + viewportHeight >= contentHeight);
         // Check whether an elements top value is smaller then the users scroll top position and offset
         // resulting in setting that value as `active`
         if (this.headlineElements[i].top <= scrollTop + this.OFFSET) {
@@ -110,10 +112,11 @@ export class BaScrollSpyService {
           // Special case when user is at the bottom of the page and there's no way tthe last item will be active
           activeItem = this.headlineElements[this.headlineElements.length - 1]
             .element.id;
+          console.log(activeItem, this.headlineElements);
         }
       }
     });
-    return activeItem!;
+    return activeItem;
   }
 
   /** Current position of user in Browser */

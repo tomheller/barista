@@ -183,12 +183,6 @@ export interface BaUxdEdge {
   selected?: boolean;
 }
 
-export interface BaUxdEdge {
-  text: string;
-  uxd_node: number; // uxd_node id
-  selected?: boolean;
-}
-
 export interface TableOfContents {
   id?: string;
   headline?: string;

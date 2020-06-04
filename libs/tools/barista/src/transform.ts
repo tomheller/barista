@@ -252,47 +252,12 @@ export const sectionTransformer: BaPageTransformer = async (source) => {
         $(element).attr('id', sectionId),
       );
     });
-    // $('h2').each((_, element) => {
-    //   let sectionId = $(element).attr('id');
-    //   if (!sectionId) {
-    //     sectionId = $(element).text().replace(' ', '-');
-    //   }
-    //   // TODO: No multiple ids
-    //   const currentArticle = $(
-    //     `<article contentSection level="0" data-id="${sectionId}"></article>`,
-    //   );
-    //   $(element)
-    //     .nextUntil('h2')
-    //     .each((_i, betweenElement) => {
-    //       currentArticle.append($(betweenElement));
-    //     });
-    //   currentArticle.insertAfter($(element));
-    // });
-    // $('article[contentSection]').each((_, outerSection) => {
-    //   $(outerSection)
-    //     .find('h3')
-    //     .each((_i, element) => {
-    //       let id = $(element).attr('id');
-    //       if (!id) {
-    //         id = $(element).text().replace(' ', '-');
-    //       }
-    //       const currentSubArticle = $(
-    //         `<article contentSection level="1" data-id="${id}"></article>`,
-    //       );
-    //       $(element)
-    //         .nextUntil('h3')
-    //         .each((__i, betweenElement) => {
-    //           currentSubArticle.append($(betweenElement));
-    //         });
-    //       currentSubArticle.insertAfter($(element));
-    //     });
-    // });
   });
 
   return transformed;
 };
 
-export const tocGenerator: BaPageTransformer = async (source) => {
+export const tableOfContentGenerator: BaPageTransformer = async (source) => {
   const transformed = { ...source };
   let toc: TableOfContents[] = [];
   if (source.toc) {

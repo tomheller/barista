@@ -46,7 +46,7 @@ export class BaToc implements OnInit {
   /** @internal whether the TOC is expanded  */
   _expandToc: boolean;
 
-  /** @internal the TOC entries that are currently active */
+  /** @internal the TOC items that are currently active */
   _activeItems: TableOfContents[] = [];
 
   constructor(

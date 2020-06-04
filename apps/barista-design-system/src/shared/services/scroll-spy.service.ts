@@ -21,7 +21,7 @@ import { Platform } from '@angular/cdk/platform';
 import { compareValues } from '@dynatrace/barista-components/core';
 import { DOCUMENT } from '@angular/common';
 
-/** Contains boundingclientrect top property and element. Used for check which item is active */
+/** Contains boundingclientrect top property and element. Used to check which item is active */
 interface HeadlineElement {
   top: number;
   element: Element;
@@ -91,11 +91,11 @@ export class BaScrollSpyService {
   }
 
   /**
-   * Evaluates by comparing the users scroll position with element top property and return the id of an element
+   * Evaluates by comparing the users scroll position with the element top property and return the id of an element
    * that should be highlighted
    */
   findActiveItem(): string {
-    // The element id of the item to be hghlighted
+    // The element id of the item to be highlighted
     let activeItem: string | null = null;
     this._zone.runOutsideAngular(() => {
       const scrollTop = this._getScrollTop();

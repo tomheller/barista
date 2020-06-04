@@ -26,7 +26,7 @@ import {
   headingIdTransformer,
   internalContentTransformerFactory,
   relativeUrlTransformer,
-  tocGenerator,
+  tableOfContentGenerator,
   sectionTransformer,
 } from './transform';
 
@@ -243,7 +243,7 @@ describe('Barista transformers', () => {
   describe('TOC Generator', () => {
     it('should generate toc', async () => {
       const content = `<h2 id=\"hl1\">hl1</h2>\n<h2 id=\"hl2\">hl2</h2><h3 id=\"shl1\">shl1</h3>`;
-      const transformed = await tocGenerator({
+      const transformed = await tableOfContentGenerator({
         title: 'toc',
         toc: true,
         layout: BaPageLayoutType.Default,
@@ -264,13 +264,13 @@ describe('Barista transformers', () => {
 
   describe('Section Transformer', () => {
     it('should wrap a section between headlines into an article tag', async () => {
-      const content = `<h2>headline1</h2><p>Content</p><span>Content</span><h3>headline 3</h3><p>Content3</p><h2>headline2</h2><p>Content2</p>`;
+      const content = `<h2>headline1</h2><p>Content</p><span>Content</span><h3 id="headline3">headline 3</h3><p>Content3</p><h2>headline2</h2><p>Content2</p>`;
       const transformed = await sectionTransformer({
         title: 'section',
         layout: BaPageLayoutType.Default,
         content,
       });
-      const result = `<h2>headline1</h2><article outersection id=\"headline1\"><p>Content</p><span>Content</span><h3>headline 3</h3><article innersection id=\"headline-3\"><p>Content3</p></article></article><h2>headline2</h2><article outersection id=\"headline2\"><p>Content2</p></article>`;
+      const result = `<h2 contentSection id=\"headline1\">headline1</h2><p>Content</p><span>Content</span><h3 id=\"headline3\" contentSection>headline 3</h3><p>Content3</p><h2 contentSection id=\"headline2\">headline2</h2><p>Content2</p>`;
       expect(transformed.content).toMatch(result);
     });
   });

@@ -36,7 +36,7 @@ import {
   headingIdTransformer,
   copyHeadlineTransformer,
   relativeUrlTransformer,
-  tocGenerator,
+  tableOfContentGenerator,
   sectionTransformer,
 } from '../transform';
 
@@ -54,7 +54,7 @@ const TRANSFORMERS: BaPageTransformer[] = [
   headingIdTransformer,
   copyHeadlineTransformer,
   relativeUrlTransformer,
-  tocGenerator,
+  tableOfContentGenerator,
   sectionTransformer,
 ];
 
